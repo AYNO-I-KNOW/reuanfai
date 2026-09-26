@@ -1,6 +1,6 @@
 # API spec — `apps/api` (Hono)
 
-> Base: `NEXT_PUBLIC_API_URL` · JSON · validate body ด้วย zod · error = `{ error: code, message }`
+> Base: เบราว์เซอร์ใช้ `/api` (rewrite → `API_ORIGIN`, ADR-0013) · path ในตารางไม่มี prefix `/api` · webhook/cron เรียก api project ตรง · JSON · validate body ด้วย zod · error = `{ error: code, message }`
 > Auth: cookie `rf_session` (JWT: `sub`, `role`, `unit_id?`) · `requireRole(...)` ทุก route ยกเว้นที่เขียนว่า public
 > web เรียกผ่าน `hc<AppType>` ทุก route ต้อง chain บน app เดียวกันเพื่อให้ type ไหลไปถึง web
 

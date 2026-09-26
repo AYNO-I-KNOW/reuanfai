@@ -34,7 +34,7 @@ flowchart LR
   M -- LIFF --> W
   P --> W
   D --> W
-  W -- Hono RPC --> A
+  W -- "/api/* rewrite · Hono RPC" --> A
   A --> DB
   A -- dtam role --> AG
   AG --- DB
@@ -112,7 +112,7 @@ docs/
 
 | Boundary | ควบคุมด้วย |
 |---|---|
-| Browser → api | session cookie (httpOnly, SameSite=Lax), CORS = `WEB_ORIGIN`, zod validate ทุก body |
+| Browser → api | เข้าได้แค่ผ่าน `/api/*` rewrite ของ web (same origin, ไม่มี CORS — ADR-0013), session cookie httpOnly + SameSite=Lax, zod validate ทุก body |
 | LIFF token | verify กับ LINE ทุกครั้งที่ login, ตรวจ `aud` |
 | LINE webhook | ตรวจ `x-line-signature` (HMAC-SHA256 ด้วย channel secret) |
 | pg_cron → api | `x-cron-secret` |
@@ -135,7 +135,7 @@ docs/
 
 ## 7. Env
 
-ดูใน `/.env.example` — api ใช้: `SUPABASE_*`, `LINE_*`, `SESSION_JWT_SECRET`, `CRON_SECRET`, `AI_GATEWAY_API_KEY`, `AI_MODEL`, `WEB_ORIGIN` ส่วน web ใช้: `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_LIFF_ID`
+ดูใน `/.env.example` — api ใช้: `SUPABASE_*`, `LINE_*`, `SESSION_JWT_SECRET`, `CRON_SECRET`, `AI_GATEWAY_API_KEY`, `AI_MODEL` ส่วน web ใช้: `API_ORIGIN` (server-only, ปลายทางของ rewrite), `NEXT_PUBLIC_LIFF_ID`
 
 ## 8. Deploy
 
@@ -145,3 +145,5 @@ docs/
 | `reuanfai-api` | `apps/api` | Hono zero-config (`src/index.ts` export default) |
 
 Supabase provision ผ่าน Vercel Marketplace แล้ว link เข้า `reuanfai-api` เท่านั้น
+
+เบราว์เซอร์ไม่เรียก `reuanfai-api` ตรง แต่ผ่าน rewrite `/api/*` ของ web (ADR-0013) · ให้ตั้ง `API_ORIGIN` ใน `reuanfai-web` และตั้ง Related Projects เพื่อให้ preview ของ web จับคู่กับ preview ของ api
