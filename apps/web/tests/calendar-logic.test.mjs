@@ -1,0 +1,17 @@
+import {readFileSync} from 'node:fs';
+import {createRequire} from 'node:module';
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+const require=createRequire(new URL('../package.json',import.meta.url));
+const ts=require('typescript');
+const source=readFileSync(new URL('../src/app/provider/design-preview/calendar-logic.ts',import.meta.url),'utf8');
+const js=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2020}}).outputText;
+const {overlaps,calendarColumns,bangkokClock}=await import('data:text/javascript;base64,'+Buffer.from(js).toString('base64'));
+test('consecutive appointments do not collide',()=>assert.equal(overlaps({start:600,end:660},{start:660,end:720}),false));
+test('partial and contained intervals collide',()=>{assert(overlaps({start:600,end:720},{start:660,end:780}));assert(overlaps({start:600,end:720},{start:615,end:630}));});
+test('overnight intervals collide after midnight',()=>{const midnight=Date.parse('2026-11-05T00:00:00+07:00');assert(overlaps({start:midnight+23*3600000,end:midnight+25*3600000},{start:midnight+24.5*3600000,end:midnight+26*3600000}));});
+test('two simultaneous clinicians split equal lanes',()=>{const c=calendarColumns([{id:'a',start:540,end:600},{id:'b',start:555,end:615}]);assert.equal(c.a.width,'calc(50% - 4px)');assert.equal(c.b.left,'50%');});
+test('connected chain reuses lanes rather than shrinking into three',()=>{const c=calendarColumns([{id:'a',start:0,end:60},{id:'b',start:30,end:90},{id:'c',start:60,end:120}]);assert.equal(c.a.width,'calc(50% - 4px)');assert.equal(c.c.left,c.a.left);});
+test('leave plus three appointments yields four visible lanes',()=>{const c=calendarColumns(['leave','a','b','c'].map(id=>({id,start:600,end:660})));assert.equal(new Set(Object.values(c).map(x=>x.left)).size,4);assert.equal(c.leave.width,'calc(25% - 4px)');});
+test('non-overlapping groups get full width',()=>{const c=calendarColumns([{id:'a',start:0,end:60},{id:'b',start:60,end:120}]);assert.equal(c.a.width,'calc(100% - 4px)');assert.equal(c.b.width,c.a.width);});
+test('Bangkok midnight changes date and resets indicator',()=>{assert.deepEqual(bangkokClock(new Date('2026-10-02T16:59:59Z')),{date:'2026-10-02',minute:1439+59/60});assert.deepEqual(bangkokClock(new Date('2026-10-02T17:00:00Z')),{date:'2026-10-03',minute:0});});

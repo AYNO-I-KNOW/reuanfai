@@ -1,0 +1,48 @@
+/* Patient-app primitives only; clinic, department and DTAM keep their own skins. */
+.scope {
+  --mother-accent: #6549f7;
+  --mother-accent-hover: #5438db;
+  --mother-accent-pressed: #4328bd;
+  --mother-border: #e4dfef;
+  --mother-muted: #625d70;
+  --mother-motion-fast: 180ms;
+  --mother-motion-panel: 280ms;
+  --mother-ease: cubic-bezier(.22,1,.36,1);
+  font-synthesis: none;
+}
+.scope *, .scope *::before, .scope *::after { box-sizing: border-box; }
+.scope :is(button, a, input, textarea, select):focus-visible {
+  outline: 2px solid var(--mother-accent);
+  outline-offset: 3px;
+}
+.scope :is(button, input, textarea, select):disabled { cursor: not-allowed; }
+.scope :is(input, textarea)::placeholder { color: #8b8796; opacity: 1; }
+.primary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 16px;
+  border: 0;
+  border-radius: 20px;
+  background: var(--mother-accent, #6549f7);
+  color: white;
+  font: 500 16px/24px 'ReuanFai UI', sans-serif;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color var(--mother-motion-fast, 180ms) ease;
+}
+@media (hover: hover) {
+  .primary:hover:not(:disabled) { background: var(--mother-accent-hover, #5438db); }
+}
+.primary:active:not(:disabled) { background: var(--mother-accent-pressed, #4328bd); }
+.primary:disabled { background: #f0f0f2; color: #96969e; }
+@media (prefers-reduced-motion: reduce) {
+  .scope *, .scope *::before, .scope *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}

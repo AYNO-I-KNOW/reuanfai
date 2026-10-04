@@ -1,4 +1,4 @@
-// ponytail: placeholder — screens wait for design review (docs/DESIGN-REVIEW.md)
+// Keep the product dashboard blank until each section is designed together.
 export default function Page() {
-  return <main className="p-6">dtam</main>
+  return null;
 }

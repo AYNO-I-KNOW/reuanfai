@@ -1,0 +1,2 @@
+/* Shared mother-app badge foundation, based on medication time chips. */
+.badge{display:inline-flex;align-items:center;justify-content:center;gap:4px;padding:4px 10px;border-radius:999px;font-size:13px;line-height:20px;font-weight:400;background:#f0ebff;color:#5438bd;max-width:100%}

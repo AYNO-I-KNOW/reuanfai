@@ -1,0 +1,15 @@
+/* Fonts are local and scoped to the DTAM design workspace. */
+@font-face { font-family: "LINE Seed Sans TH"; src: url("/fonts/line-seed/LINESeedSansTH_W_Th.woff2") format("woff2"); font-weight: 250; font-style: normal; font-display: swap; }
+@font-face { font-family: "ReuanFai UI"; src: url("/fonts/line-seed/LINESeedSansTH_W_Th.woff2") format("woff2"); font-weight: 250; font-style: normal; font-display: swap; }
+@font-face { font-family: "LINE Seed Sans TH"; src: url("/fonts/line-seed/LINESeedSansTH_W_Rg.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "ReuanFai UI"; src: url("/fonts/line-seed/LINESeedSansTH_W_Rg.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "LINE Seed Sans TH"; src: url("/fonts/line-seed/LINESeedSansTH_W_Bd.woff2") format("woff2"); font-weight: 700; font-style: normal; font-display: swap; }
+@font-face { font-family: "ReuanFai UI"; src: url("/fonts/line-seed/LINESeedSansTH_W_Bd.woff2") format("woff2"); font-weight: 700; font-style: normal; font-display: swap; }
+@font-face { font-family: "LINE Seed Sans TH"; src: url("/fonts/line-seed/LINESeedSansTH_W_XBd.woff2") format("woff2"); font-weight: 800; font-style: normal; font-display: swap; }
+@font-face { font-family: "ReuanFai UI"; src: url("/fonts/line-seed/LINESeedSansTH_W_XBd.woff2") format("woff2"); font-weight: 800; font-style: normal; font-display: swap; }
+@font-face { font-family: "LINE Seed Sans TH"; src: url("/fonts/line-seed/LINESeedSansTH_W_He.woff2") format("woff2"); font-weight: 900; font-style: normal; font-display: swap; }
+@font-face { font-family: "ReuanFai UI"; src: url("/fonts/line-seed/LINESeedSansTH_W_He.woff2") format("woff2"); font-weight: 900; font-style: normal; font-display: swap; }
+@font-face { font-family: "Noto Sans Thai Local"; src: url("/fonts/noto-sans-thai/NotoSansThai-variable.ttf") format("truetype"); font-weight: 100 900; font-style: normal; font-display: swap; }
+@font-face { font-family: "ReuanFai UI"; src: url("/fonts/noto-sans-thai/NotoSansThai-variable.ttf") format("truetype"); font-weight: 100 249; font-style: normal; font-display: swap; }
+@font-face { font-family: "ReuanFai UI"; src: url("/fonts/noto-sans-thai/NotoSansThai-variable.ttf") format("truetype"); font-weight: 251 399; font-style: normal; font-display: swap; }
+@font-face { font-family: "ReuanFai UI"; src: url("/fonts/noto-sans-thai/NotoSansThai-variable.ttf") format("truetype"); font-weight: 401 699; font-style: normal; font-display: swap; }
