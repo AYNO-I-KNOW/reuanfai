@@ -2301,7 +2301,7 @@
 .appointmentServices .check {
   margin: 8px 0;
 }
-/* TaskLance metric composition, adapted to three separate cards. */
+/* Three separate summary cards. */
 .summary {
   display: grid;
   grid-template-columns: repeat(3,minmax(0,1fr));

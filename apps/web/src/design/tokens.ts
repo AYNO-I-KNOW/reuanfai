@@ -62,8 +62,6 @@ export function weightSource(weight: number) {
 }
 
 export const references = [
-  { name: "TaskLance · Orely", url: "https://dribbble.com/shots/26370241-TaskLance-Freelance-Project-Management-Dashboard", pattern: "แถบสรุปตัวเลขร่วมกัน การ์ดขอบบาง และแผงข้อมูลด้านขวา", adaptation: "อ้างอิงความหนาแน่นและการแบ่ง main/inspector; ไม่ยกแบนเนอร์ illustration มาใส่หน้าเครื่องมือ" },
-  { name: "Taskzero · Orely", url: "https://dribbble.com/shots/26089998-Taskzero-Task-Management-Dashboard", pattern: "toolbar สั้น เมนูย่อยเป็นแถว และการ์ดข้อมูลในกริด", adaptation: "ใช้ toolbar และลำดับข้อมูลที่กระชับ สำหรับ dashboard ที่จะออกแบบต่อ" },
   { name: "Radix Colors", url: "https://www.radix-ui.com/colors", pattern: "ตารางสีเป็นกลุ่มเทียบกันได้ ชื่อกลุ่มสั้น และดูรายละเอียดเมื่อเลือกสี", adaptation: "ชุดสีแบบแถวขนาดเล็ก ไม่มีกรอบการ์ดและคำอธิบายซ้ำทุกสี" },
   { name: "shadcn Create", url: "https://ui.shadcn.com/create", pattern: "แยกตัวควบคุมธีมออกจากพื้นที่ preview ที่ใช้งานจริง", adaptation: "แผงขวารวม HEX, color picker, contrast และ preview ในที่เดียว" },
 ] as const;
