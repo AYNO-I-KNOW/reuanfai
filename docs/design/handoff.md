@@ -9,7 +9,7 @@
 - Figma: [ไฟล์ UI](https://www.figma.com/design/vijW6m6e4GshKUfYWTiCaZ) · ตรวจ metadata ของ node ที่ระบุใน §2 อีกครั้งวันที่ 2026-10-05 ไม่ใช่การรับรองว่า Figma ตรงกับโค้ดทุก state
 - Phase: รอบ handoff นี้เป็น **รอบ 1** ครอบคลุม UI prototype ที่เกี่ยวข้องกับ phase 1–5 ใน screen-map; **ยังไม่มี phase ใดที่ยืนยันว่าผ่าน design review ครบ** โดยเฉพาะ M4-R, M8, M11 และ D8 ยังไม่มี UI ในโค้ด
 - ผู้ติดต่อด้าน UX/UI: ฐานิศร์ จรูญสิริเศรษฐ์ (ออฟ) ตาม `README.md:19`; Product: เกรพ · AI/Backend: พู
-- แหล่งส่งต่อหลัก: โค้ดใน Git และเอกสารนี้ ใช้เส้นทาง `/ruenfai`, `/clinic`, `/department` สำหรับตรวจ prototype; `/` เป็นหน้า dev และ `/dtam` คงพื้นที่ว่าง
+- แหล่งส่งต่อหลัก: โค้ดใน Git และเอกสารนี้ ใช้เส้นทาง `/ruenfai`, `/clinic`, `/department` สำหรับตรวจ prototype; `/` เป็นหน้า dev ส่วน `/dtam` และ `/dtam/design-system` เป็นงานเดิมที่ผู้ใช้ระบุว่าทำผิดที่และตั้งใจลบทิ้ง จึงไม่อยู่ในขอบเขตส่งมอบรอบนี้
 - ผลตรวจรอบนี้: `node --test apps/web/tests/*.mjs` ผ่าน 15/15 · web typecheck และ ESLint ผ่าน ไม่ได้ replay ทุก browser state ในรอบเอกสารนี้
 - รูปแบบมือถือปัจจุบัน: consent → ข้อมูลคุณแม่ → อาการ 7 ข้อ → ภาวะสุขภาพ 6 ข้อ → ข้อควรระวัง 7 ข้อ → processing 6 วินาที → ผลตัวอย่าง → booking หน้าเดียว → confirmation → loading → success; ฟอร์มเก็บค่าขณะเปลี่ยนช่วง แต่ไม่ส่งคำตอบไป rules engine
 - Booking/clinic/prescription/review เชื่อมกันใน browser demo store; journal และสถานะทานยาอยู่ใน React state การ refresh ไม่รับประกันข้อมูลทุกประเภท
@@ -87,7 +87,7 @@ README ใน `public/` ครอบคลุมเฉพาะฟอนต์ �
 | view=`inventory` | `page.tsx:581` | P7 | `provider/inventory` | `careDemo.medicines` | `GET /provider/inventory`, `…/moves`, `POST …/receive`, `…/adjust` | 11 ยา · สถานะ ปกติ/ใกล้หมด/หมด/ใกล้หมดอายุ · ประวัติการจ่าย (empty มี) · รับยาเข้า/ปรับยอด · ปรับยอดบังคับ reason ✅ แต่ UI ส่ง "ยอดใหม่" (absolute) ไม่ใช่ `delta`+`lotId` · รับยาเข้าเขียนทับ lot/expiry เดิมของยา (1 lot ต่อยา, ไม่ใช่ FEFO หลาย lot) · วันหมดอายุคำนวณจากวันที่ hard-code `2026-11-05` · มี "เพิ่มยาใหม่/แก้ไขยา/เปลี่ยนรูป" ที่ api.md ไม่มี · ไม่แยก role pharmacist | พัฒนาในโค้ด; ยังไม่มี frame เฉพาะที่ยืนยัน |
 | view=`reviews` | `ReviewsPanel.tsx` | P8 | `provider/reviews` | `initialReviews` (8 แถว ใน `:11`) + localStorage `reuanfai-demo-reviews-v1` | `GET /provider/reviews`, `GET /provider/alerts`, `POST /provider/alerts/:id/contacted` | empty "ไม่พบรีวิวตามตัวกรอง" · ติดตามเรื่อง (ผู้รับผิดชอบ/สถานะ/บันทึก) · **ไม่มี** logic n<5 → `insufficient` · ไม่มีป้าย "สรุปโดย AI" (มี "จัดหมวดตัวอย่าง") · มีตัวกรองแพทย์ (ดู §6) | พัฒนาในโค้ด; ยังไม่มี frame เฉพาะที่ยืนยัน |
 
-### 2.4 กรมฯ (`/department` = re-export ของ `/department/design-preview`) และ `/dtam`
+### 2.4 กรมฯ (`/department` = re-export ของ `/department/design-preview`)
 
 | route ในโค้ด | ไฟล์ | map ID | route ตาม spec | แหล่งข้อมูลตอนนี้ | API ที่ต้องต่อ | state ที่มีแล้ว | Figma / หลักฐาน UI |
 |---|---|---|---|---|---|---|---|
@@ -97,8 +97,6 @@ README ใน `public/` ครอบคลุมเฉพาะฟอนต์ �
 | view 3 "ยาและคลังเครือข่าย" | `:71` | D5 | `dtam/drugs` | ค่าคงที่ + `careDemo.prescriptions` | `GET /dtam/drugs` | – | พัฒนาในโค้ด; ยังไม่มี frame เฉพาะที่ยืนยัน |
 | view 4 "ข้อเสนอจาก AI" | `:72` | D7 | `dtam/ai` | 2 ข้อเสนอ hard-code | `GET /dtam/ai-proposals`, `POST …/:id/decision` | ปุ่ม รับข้อเสนอ/ไม่รับ/ขอข้อมูลเพิ่ม (= accepted/rejected/more_info) · **ไม่มี** ช่อง `comment` · ข้อความ "เก็บเฉพาะในหน้าพรีวิว" | พัฒนาในโค้ด; ยังไม่มี frame เฉพาะที่ยืนยัน |
 | (ไม่มี) | – | D8 ชุดกฎ | `dtam/rules` | – | `/dtam/rulesets…` | – | ยังไม่ยืนยัน frame และยังไม่มี UI ในโค้ด |
-| `/dtam` | `dtam/page.tsx` | – (คืน `null` ในกรอบ `DashboardShell`) | – | – | – | ว่าง | – |
-| `/dtam/design-system` | `dtam/design-system/page.tsx` | – (หน้าเอกสาร tokens/คอมโพเนนต์ ไม่ใช่หน้า product) | – | `design/tokens.ts` | – | – | พัฒนาในโค้ด; ยังไม่มี frame เฉพาะที่ยืนยัน |
 
 ตัวกรองกรมฯ ในโค้ด: เขตสุขภาพ (`1`,`4`) · จังหวัด · หน่วยบริการ · วิธีคลอด (ทั้งหมด/คลอดธรรมชาติ/ผ่าคลอด) · ช่วงเวลา (เดือนล่าสุด/3 เดือน/6 เดือน) — spec: `region, province, unitId, range=3m|6m|12m, method` → **ไม่มี 12 เดือน**, มี "เดือนล่าสุด" ที่ spec ไม่มี, วิธีคลอดมี 2 ค่า (spec ใช้ enum 4 ค่า)
 
@@ -123,7 +121,6 @@ README ใน `public/` ครอบคลุมเฉพาะฟอนต์ �
 | `/ruenfai/growth` | alias → journal (ชื่อสื่อถึงพัฒนาการลูก แต่ไม่มีเนื้อหาเฉพาะ) | alias สำหรับ compatibility ของ prototype; ไม่ใช่ feature พัฒนาการลูกใหม่ (R-01) |
 | `/ruenfai/baby` | alias → medicines | alias ของ prototype; ไม่ใช่ feature ลูกใหม่ (R-01) |
 | `/ruenfai/profile` | alias → appointments (ไม่ใช่หน้าโปรไฟล์/M2/M11) | alias ของ prototype; ไม่ใช่ M2/M11 (R-01) |
-| `/dtam/design-system` | หน้าเอกสาร design system (dev/design workspace) | เครื่องมือ design/dev; production exposure ยังไม่ตัดสิน (R-06) |
 | ช่องเบอร์ติดต่อแม่ + เบอร์ฉุกเฉิน (M2) | `phone`, `emergencyPhone` — ไม่มีใน api.md `PUT /me/profile` และ `mothers` ใน data-model.md | ผู้ใช้เลือกให้บังคับทั้งสองเบอร์ใน prototype; API/consent/persistence รอตัดสิน (R-07) |
 | ฝั่งหน่วยบริการ: "เพิ่มนัดหมาย" (กรอกชื่อ/เบอร์เอง) | api.md ไม่มี `POST /provider/appointments` · ช่องชื่อเป็น free text (`page.tsx:592`) | อยู่ใน prototype; staff API/role และ displayCode รอตัดสิน (R-08) |
 | ฝั่งหน่วยบริการ: เพิ่ม/แก้ไขยา + เปลี่ยนรูปยา | api.md ไม่มี create/update drug (มีแค่ receive/adjust, ยา 11 รายการคงที่) | อยู่ใน prototype; production CRUD และสิทธิ์รอตัดสิน (R-09) |
@@ -243,7 +240,7 @@ README ใน `public/` ครอบคลุมเฉพาะฟอนต์ �
 
 > เฉพาะข้อที่ตรวจจากโค้ดได้ · เทียบ `DESIGN-REVIEW.md` §1 · ไม่ใช่ผล review รอบทางการ
 > สรุป: ✅ 7 · ❌ 10 · ต้องยืนยัน 1 · ตรวจไม่ได้ 1
-> รอบนี้ไม่เปลี่ยน ❌ เป็น ✅ เพราะไม่ได้แก้โค้ดของข้อเหล่านั้น; หลักฐานด้านล่างตรวจเทียบ source ปัจจุบัน การตัดแหล่งอ้างอิงจากหน้า design-system ไม่ได้ปิดข้อค้าง product
+> รอบนี้ไม่เปลี่ยน ❌ เป็น ✅ เพราะไม่ได้แก้โค้ดของข้อเหล่านั้น; หลักฐานด้านล่างตรวจเทียบ source ปัจจุบัน งานเดิมใน `/dtam` ไม่อยู่ในขอบเขตตรวจ product รอบนี้
 
 | # | ข้อ (DESIGN-REVIEW §1) | เห็นในโค้ด | หลักฐาน |
 |---|---|---|---|
@@ -275,12 +272,12 @@ README ใน `public/` ครอบคลุมเฉพาะฟอนต์ �
 
 | ID | ต่างจาก spec ตรงไหน | เหตุผลของ prototype / หลักฐาน | ข้อเสนอ |
 |---|---|---|---|
-| R-01 | ใช้ `/ruenfai`, `/clinic`, `/department` และ state ใน route เดียว แทน production paths; aliases growth/baby/profile ไม่ใช่ feature ตามชื่อ | แยกพื้นที่ตรวจ UI จาก foundations เดิม; `ruenfai/BottomNav.tsx:14`, `clinic/page.tsx:1`, `department/page.tsx:1`; `/dtam` คงว่างตามขอบเขตงาน | ให้ owner เลือกคง paths ตาม spec หรือเสนอ screen-map ใหม่; อย่า redirect/rewrite production โดยอัตโนมัติ |
+| R-01 | ใช้ `/ruenfai`, `/clinic`, `/department` และ state ใน route เดียว แทน production paths; aliases growth/baby/profile ไม่ใช่ feature ตามชื่อ | แยกพื้นที่ตรวจ UI จาก foundations เดิม; `ruenfai/BottomNav.tsx:14`, `clinic/page.tsx:1`, `department/page.tsx:1`; ตรวจเฉพาะสามพื้นที่ product ปัจจุบัน | ให้ owner เลือกคง paths ตาม spec หรือเสนอ screen-map ใหม่; อย่า redirect/rewrite production โดยอัตโนมัติ |
 | R-02 | M3 แสดงทีละช่วง 7/6/7 ถามทุกข้อ ไม่มี askIf/auto-next/unsure call/refer | ผู้ใช้เลือกแบบฟอร์มรวมต่อช่วงและคงคำตอบเมื่อย้อนกลับ; `ruenfai/onboarding/SymptomsForm.tsx:7`, `:33`, `:48` | คง rules engine ตาม spec; review UX ที่ต้องแสดงเงื่อนไข/refer ก่อนเชื่อม API |
 | R-03 | M4 ผลตัวอย่างมี 3 สถานะ ไม่มี not_yet/reasons/หน้าคู่มือ; badges/static cards และคำกำกับยังต่างจาก spec | ผู้ใช้เลือก cards บอกสถานะและตัดรายละเอียดคลิก; `ruenfai/onboarding/ResultsSummary.tsx:8`, `:26` | owner review ความต่างนี้; ต้องส่ง reasons/manual page และข้อความไม่ใช่วินิจฉัยตาม spec ก่อน production |
 | R-04 | M6 รวม unit/procedure/rights/date/time หน้าเดียว ไม่มีสิทธิ์บนสุด/checkbox share/errors ครบ; อบ disabled แทนจองนัดประเมิน | ผู้ใช้เลือก single-page booking + confirmation + success; `ruenfai/onboarding/BookingForm.tsx:12`, `:22` | ตัดสิน single-page vs 4 routes; review quota/referral/consent/error states โดยใช้ contract เดิม |
 | R-05 | Journal/mood ไม่มีใน screen-map หรือ API | ผู้ใช้เลือกแท็บบันทึกและการสร้างบันทึกรายวันใน prototype; `ruenfai/journal/page.tsx:1`, `ruenfai/JournalState.tsx:1` | owner ตัดสิน scope/persistence/consent; ไม่เพิ่ม API จาก UI เอง |
-| R-06 | Design-system เป็น route เปิดได้ใน production build | เครื่องมือ tokens/component preview; `dtam/design-system/page.tsx:1` | owner ตัดสินให้อยู่ dev-only หรือเปิดเป็นเอกสารทีม; ยังไม่เปลี่ยน config/auth |
+| R-06 | งานเดิม `/dtam` และ `/dtam/design-system` ไม่ใช่ product ปัจจุบัน | ผู้ใช้ยืนยันให้ใช้ `/ruenfai`, `/clinic`, `/department` เป็นขอบเขต handoff | ไม่นับงานเดิมเป็นหน้าที่ส่งมอบหรือ acceptance criteria; การลบไฟล์เป็นงานแยก |
 | R-07 | เบอร์แม่/ฉุกเฉิน required แต่ API ไม่มี; emergency อยู่ล่าง/ไม่แสดง onboarding-review และไม่มี 7 อาการ/unitPhone | ผู้ใช้เลือกสองเบอร์และ bottom-nav contact sheet; `ruenfai/onboarding/MotherForm.tsx:1`, `ruenfai/BottomNav.tsx:14`, `src/design/care-demo.ts:42` | review ขอบเขตข้อมูล/consent และ emergency UX ตาม M12; อย่าขยาย schema โดยอัตโนมัติ |
 | R-08 | Staff สร้างนัดเองด้วย free text/เบอร์ แต่ API ไม่มี create route | prototype สำหรับตรวจการเพิ่มนัด/agenda; `provider/design-preview/page.tsx:592` | กำหนด role/displayCode และ contract โดย owner ก่อน production |
 | R-09 | เพิ่ม/แก้ยา/รูป และรับยาเข้าแทน lot เดิม ไม่ใช่ FEFO หลาย lot | prototype inventory; `provider/design-preview/page.tsx:581`, `src/design/care-demo.ts:65` | production ใช้ lot/receive/adjust ตาม spec; CRUD ใหม่รอ owner |
