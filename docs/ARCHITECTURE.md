@@ -13,7 +13,7 @@ flowchart LR
   end
 
   subgraph Vercel
-    W[apps/web<br/>Next.js 16<br/>/m · /provider · /dtam]
+    W[apps/web<br/>Next.js 16<br/>ruenfai · clinic · department]
     A[apps/api<br/>Hono]
     subgraph A_int[ภายใน api]
       RE[rules engine<br/>pure, no AI]
@@ -62,10 +62,10 @@ flowchart LR
 apps/
   web/src/
     app/
-      m/          consent · profile · screening/[step] · results · refer · calendar
-                  booking/[step] · appointments · checkin/[id] · meds · review/[id] · sharing · emergency
-      provider/   login · schedule · queue · cases/[id] · treatment/[id] · prescribe/[id] · inventory · reviews
-      dtam/       overview · outcomes · safety · access · drugs · satisfaction · ai · rules
+      ruenfai/    page (calendar) · onboarding?screen= (consent · profile · screening · results · booking) · appointments · medicines · review · journal
+                  (ยังไม่มี design: refer · checkin/[id] · sharing) · emergency = sheet ใน bottom nav
+      clinic/     หน้าเดียว สลับ view: dashboard/appointments · case · treatment · prescribe · schedule · inventory · reviews  (+ login)
+      department/ หน้าเดียว สลับ view: ภาพรวม(D1+D4) · ผลลัพธ์(D2+D6) · ความปลอดภัย · ยา · ข้อเสนอ AI  (D8 ยังไม่มี design)
     lib/api.ts    hc<AppType>
   api/src/
     index.ts      mount routes, export AppType
@@ -88,8 +88,8 @@ docs/
 
 ### 4.1 คัดกรอง → จอง (M2 → M3 → M4 → M6)
 1. `PUT /me/profile` → API บันทึก แล้ว **คำนวณผลเดิมใหม่** ถ้าวันคลอด/วิธีคลอดเปลี่ยน
-2. `GET /me/screening/questions` → engine คืนรายการคำถามตาม profile (16–19 ข้อ) พร้อม metadata `onYes`, `onUnsure`
-3. web เดิน flow จาก metadata (A1 yes → A1a, เจอข้อส่งต่อ → M4-R ทันที) แต่ **server เป็นตัวตัดสินจริง** ตอน submit
+2. `GET /me/screening/questions` → engine คืนคำถามครบ 20 ข้อ (ADR-0014) web แสดงเป็นฟอร์มต่อช่วง 7/6/7 ไม่เดิน flow เอง
+3. **server เป็นตัวตัดสินจริง** ตอน submit: ตัดคำตอบข้อที่ไม่ applies (16–19 ข้อที่นับ) · เข้าเกณฑ์ส่งต่อ → M4-R (จังหวะส่ง = Q15)
 4. `POST /me/screenings` → engine.evaluate → บันทึก `screenings(result, ruleset_version)` → ถ้าเข้าเกณฑ์ส่งต่อ สร้าง `referral_lock`
 5. `GET /units/:id/availability` = slot ว่างของหน่วย ∩ กรอบเวลาของหัตถการ (`unit_start_days` ≥ ค่าคู่มือ) ∩ ยังไม่เลยเส้นตาย ∩ quota (≤5 ครั้ง/3 เดือน, ≤1 ครั้ง/วัน)
 6. `POST /me/appointments` → status `pending`, สร้าง share ถ้าติ๊ก, enqueue N3 (วันก่อนนัด)
@@ -130,7 +130,8 @@ docs/
 | นัดหมาย | ของตัวเอง | ของหน่วย | ของหน่วย | – | รวมกลุ่ม | รวมกลุ่ม |
 | บันทึกการรักษา / ใบสั่งยา | ของตัวเอง | ✓ | อ่าน | – | รวมกลุ่ม | รวมกลุ่ม |
 | คลังยา | – | อ่าน | อ่าน | ✓ | รวมกลุ่ม | รวมกลุ่ม |
-| รีวิว (ข้อความ) | ของตัวเอง | ธีม (≥5) | ธีม + alert | – | ธีม | scrub แล้ว |
+| รีวิว (ข้อความ) | ของตัวเอง | ธีม (≥5) กรองรายแพทย์ได้ (ADR-0014) | ธีม + alert | – | ธีม | scrub แล้ว |
+| บันทึกอารมณ์ (journal) | ✓ | – | – | – | – | **ห้าม** |
 | ชุดกฎ | ที่มาของผล | ✓ | ✓ | ✓ | ✓ (อนุมัติ: approver) | ✓ |
 
 ## 7. Env

@@ -13,11 +13,13 @@
 | `Chronic` | `diabetes, hypertension, heart, asthma, epilepsy, kidney, osteoporosis` (หรือ `none`) |
 | `Answer` | `yes \| no \| unsure` |
 | `Procedure` | `massage` นวดไทย · `compress` ประคบสมุนไพร · `salt_pot` ทับหม้อเกลือ · `steam` อบสมุนไพร (อบไอน้ำ) · `hot_stone` ก้อนเส้า · `eval` นัดประเมิน |
-| `ProcStatus` | `ok` ทำได้ในช่วงนี้ (เขียวเข้ม) · `evaluate` ให้ประเมินก่อน (ส้มอิฐ) · `not_yet` ยังไม่ถึงกำหนด + วันเริ่ม (เทา) · `forbidden` ห้าม + เหตุผล (ตัวหนังสือแดงเข้ม ห้ามพื้นแดงทั้งกล่อง) |
+| `ProcStatus` | `ok` ทำได้ในช่วงนี้ · `evaluate` ให้ประเมินก่อน · `not_yet` ยังไม่ถึงกำหนด + วันเริ่ม · `forbidden` ห้าม + เหตุผล (ห้ามพื้นแดงทั้งกล่อง) — enum 4 ค่าไม่เปลี่ยน ส่วนสี/คำที่แสดงและการแสดงเป็น 3 สถานะบนจอแม่ (`not_yet` = SPEC Q9) ตาม design (ADR-0014) |
 
 ความสำคัญของสถานะ ถ้ามีหลายกฎชนกันให้เลือกตัวที่แรงที่สุด: `forbidden > not_yet > evaluate > ok` และเก็บทุกเหตุผลที่เจอไว้ใน `reasons[]`
 
 ## 2. คำถามคัดกรอง (M3) — 3 ช่วง
+
+> UI แสดงครบ 20 ข้อ (7/6/7) ทุกคน ไม่ซ่อนตาม `askIf` (ADR-0014) · `askIf` ใช้ใน engine เท่านั้น: คำตอบของข้อที่ `askIf` เป็น false สำหรับแม่คนนั้น (รวม A1a เมื่อ A1≠yes) **ถูกตัดทิ้ง**ก่อนคำนวณ ไม่ว่าจะตอบอะไร
 
 `askIf` = เงื่อนไขว่าจะถามข้อนี้หรือไม่ · `onYes` / `onUnsure` = ผล (`refer` = ไป M4-R + lock, `evalAll` = ทุกหัตถการเป็น evaluate, `eval:<proc>` = หัตถการนั้นเป็น evaluate, `ask:<id>` = ไปถามข้อย่อยต่อ) · `checkin` = ใช้ในเช็กอินก่อนนัด (M8) ด้วยไหม
 
@@ -56,9 +58,9 @@
 | C7 | แผลผ่าคลอดยังมีส่วนที่ไม่หายสนิทไหม | cesareanAny | `eval:steam` | อบ 2.6 (หน้า 93) |
 | C8 | ตอนนี้มีประจำเดือนมามากกว่าปกติไหม | vaginal | ไม่เปลี่ยนหัตถการ → flag `heavy_menses` สำหรับคำเตือนยาประสะไพล | ข้อห้ามประสะไพล (หน้า 82) |
 
-**จำนวนข้อที่ต้องได้:** ผ่าคลอดไม่มีโรคประจำตัว = 16 · คลอดทางช่องคลอดไม่มีโรคประจำตัว = 17 · +A1a ถ้า A1=yes · +B5 ถ้ามีโรคที่เข้าเงื่อนไข → รวมเป็น 16–19
+**จำนวนข้อที่ applies (นับในผล):** ผ่าคลอดไม่มีโรคประจำตัว = 16 · คลอดทางช่องคลอดไม่มีโรคประจำตัว = 17 · +A1a ถ้า A1=yes · +B5 ถ้ามีโรคที่เข้าเงื่อนไข → รวมเป็น 16–19 (จากที่แสดงให้ตอบ 20 ข้อ)
 
-**Flow:** ตอบ `yes`/`no` แล้วไปข้อถัดไปเลย ส่วน `unsure` เปิดช่อง "เล่าเพิ่มสั้น ๆ (ไม่บังคับ)" แล้วคุณแม่กด "ถัดไป" เอง (ช่วง 1 มีปุ่ม "โทรปรึกษาหน่วยบริการ" ด้วย) ถ้าเจอ `refer` → ไป M4-R ทันทีและหยุดคัดกรอง
+**Flow (ADR-0014):** ฟอร์มต่อช่วง ตอบได้ทุกข้อ ไม่ไปข้อถัดไปอัตโนมัติ `unsure` เปิดช่อง "เล่าเพิ่มสั้น ๆ (ไม่บังคับ)" ไม่มีปุ่มโทรปรึกษา · server เป็นคนตัดสิน: เจอ `refer` → M4-R + lock (จังหวะส่งคำตอบ = Q15) · ข้อที่ applies ต้องมีคำตอบ ไม่ตอบ ≠ ผ่าน · `unsure` ในข้อที่ applies ยังเป็นไปตาม `onUnsure` (ไม่ผ่าน — ADR-0005)
 
 ## 3. กฎจาก profile (ไม่ต้องถาม)
 | id | เงื่อนไข | ผล | ที่มา |
@@ -142,7 +144,7 @@ type Effect =
 
 engine API (pure):
 ```ts
-questionsFor(ruleset, profile, mode: 'screening' | 'checkin'): Question[]
+questionsFor(ruleset, profile, mode: 'screening' | 'checkin'): (Question & { applies: boolean })[]  // screening = ครบ 20 ข้อ ไม่กรอง; checkin = เฉพาะข้อเช็กอินที่ applies
 evaluate(ruleset, profile, answers, today, unit?): {
   referral: { qid: string; label: string } | null
   procedures: Record<Procedure, { status: ProcStatus; reasons: { text: string; ref: Ref[] }[]; availableFrom?: string }>
@@ -155,10 +157,10 @@ drugWarnings(ruleset, profile, latestAnswers, drugId): { ruleId: string; message
 ## 9. Test cases ที่ engine ต้องผ่าน
 | # | Input | Expect |
 |---|---|---|
-| 1 | cesarean, ไม่มีโรค | `questionsFor` = 16 ข้อ, มี C7, ไม่มี A4/C8 |
-| 2 | normal, ไม่มีโรค | 17 ข้อ, มี A4/C8, ไม่มี C7 |
-| 3 | cesarean + hypertension | 17 ข้อ (มี B5), `steam: evaluate` จาก P-STEAM-CHRONIC |
-| 4 | A1=yes | ถามต่อ A1a (ข้อ 2 จาก 17) |
+| 1 | cesarean, ไม่มีโรค | `questionsFor` screening = 20 ข้อ, `applies` = 16 ข้อ, C7 applies, A4/C8 ไม่ applies |
+| 2 | normal, ไม่มีโรค | applies 17 ข้อ, A4/C8 applies, C7 ไม่ applies |
+| 3 | cesarean + hypertension | applies 17 ข้อ (มี B5), `steam: evaluate` จาก P-STEAM-CHRONIC |
+| 4 | A1=yes | A1a applies (นับเป็นข้อ 2 จาก 17) |
 | 5 | A1=yes, A1a=no | `referral.qid = A1`, ห้ามจอง |
 | 6 | A1=yes, A1a=yes | ไม่ส่งต่อ, ทุกหัตถการ `evaluate` |
 | 7 | A1=unsure | ทุกหัตถการ `evaluate`, ไม่ส่งต่อ |
@@ -172,3 +174,7 @@ drugWarnings(ruleset, profile, latestAnswers, drugId): { ruleId: string; message
 | 15 | normal, C8=yes + ประสะไพล | warning D-MENSES หน้า 82 |
 | 16 | input เดิม 2 ครั้ง | ผลเหมือนกัน (deterministic) และมี `rulesetVersion` |
 | 17 | ทุก reason | มี ref อย่างน้อย 1 อัน |
+| 18 | cesarean, A4=yes (ข้อไม่ applies), ที่เหลือ no | ไม่ส่งต่อ, ไม่มี reason จาก A4 (คำตอบถูกตัด) |
+| 19 | A1=no, A1a=no | ไม่ส่งต่อ (A1a ไม่ applies คำตอบถูกตัด) |
+| 20 | ข้อที่ applies ไม่มีคำตอบ | `validation` ไม่ใช่ผ่าน |
+| 21 | ข้อที่ applies ตอบ unsure | ไม่นับเป็นผ่าน (`evaluate`/ตาม `onUnsure`) |

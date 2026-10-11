@@ -1,9 +1,12 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Noto_Sans_Thai } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 
 const font = Noto_Sans_Thai({ subsets: ["thai", "latin"], variable: "--font-noto-thai" });
+
+// Safe-area insets resolve to 0 on iOS/in-app browsers without viewport-fit=cover
+export const viewport: Viewport = { viewportFit: "cover" };
 
 export const metadata: Metadata = {
   title: "เรือนไฟ",
