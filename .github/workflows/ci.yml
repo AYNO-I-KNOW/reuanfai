@@ -1,5 +1,10 @@
 name: ci
 on: [push, pull_request]
+permissions:
+  contents: read
+concurrency:
+  group: ci-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   check:
     runs-on: ubuntu-latest
@@ -12,3 +17,41 @@ jobs:
       - run: pnpm typecheck
       - run: pnpm lint
       - run: pnpm build
+  deploy:
+    name: Deploy production to Vercel
+    needs: check
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: pnpm }
+      - name: Verify deployment secrets
+        run: |
+          for name in VERCEL_ORG_ID VERCEL_PROJECT_ID VERCEL_TOKEN; do
+            if [ -z "${!name}" ]; then
+              echo "::error::Missing GitHub Actions secret: $name"
+              exit 1
+            fi
+          done
+      - name: Install Vercel CLI
+        run: npm install --global vercel@59.13.1
+      - name: Pull production configuration
+        run: vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
+      - name: Build production artifacts
+        run: vercel build --prod --token="$VERCEL_TOKEN"
+      - name: Deploy production artifacts
+        run: |
+          main_sha=$(git ls-remote origin refs/heads/main | cut -f1)
+          if [ "$main_sha" != "$GITHUB_SHA" ]; then
+            echo "Skipped deployment: main has a newer commit." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          vercel deploy --prebuilt --prod --yes --token="$VERCEL_TOKEN" > deployment-url.txt
+          printf 'Production deployment: %s\n' "$(cat deployment-url.txt)" >> "$GITHUB_STEP_SUMMARY"
