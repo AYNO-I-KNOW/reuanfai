@@ -1,0 +1,42 @@
+.page{height:100dvh;overflow:auto;overscroll-behavior:contain;background:#f3f4fd;color:#1c1d21;font:14px/1.6 'ReuanFai UI',sans-serif}
+.page *{box-sizing:border-box}
+.content{max-width:480px;margin:auto;padding:calc(16px + env(safe-area-inset-top,0px)) 16px calc(128px + env(safe-area-inset-bottom,0px))}
+.header{min-height:44px;display:flex;align-items:center}.header h1{font-size:24px;line-height:34px;font-weight:700;margin:0;letter-spacing:-.4px;outline:none}.page button{font:inherit;cursor:pointer}
+.hero{text-align:center;padding:24px 0}.heroArt{position:relative;width:160px;height:160px;margin:auto;overflow:hidden}.heroArt img{position:absolute;width:110.34%;height:100.31%;max-width:none;left:-3.45%;top:-.16%}
+.hero p{font-size:14px;line-height:23px;margin:16px 0 0;color:#625d70}
+.procedures{display:grid;gap:8px}.procedure{background:#fff;border-radius:24px;padding:14px 16px}.procedure summary{list-style:none;cursor:pointer}.procedure summary::-webkit-details-marker{display:none}.procedureHeading{display:flex;align-items:baseline;justify-content:space-between;gap:12px}.procedure h2{font-size:16px;line-height:25px;font-weight:700;margin:0}.status{text-align:right;flex-shrink:0}.available .status{color:#21745c}.assessment .status{color:#985018}.restricted .status{color:#b13d50}.procedureCaption{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:4px;color:#716b7a;font-size:13px;line-height:20px}.procedureCaption svg{flex-shrink:0;transition:transform 180ms}.procedure[open] .procedureCaption svg{transform:rotate(90deg)}
+.reason{border-top:1px solid #eeedf5;margin-top:12px;padding-top:10px;color:#625d70;font-size:13px;line-height:22px}.reason p{margin:0 0 8px}.reason p:last-child{margin-bottom:0}
+.footer{position:fixed;z-index:10;left:50%;bottom:0;transform:translateX(-50%);width:100%;max-width:480px;padding:32px 16px max(24px,env(safe-area-inset-bottom,0px));display:flex;gap:16px;background:linear-gradient(transparent,#f3f4fdf2 35%,#f3f4fd 75%);pointer-events:none}.footer button,.footer a{display:flex;align-items:center;justify-content:center;text-decoration:none;font:inherit;flex:1;min-width:0;min-height:48px;padding:12px 16px;border:0;border-radius:999px;pointer-events:auto;font-size:16px}.secondary{background:#fff;color:#27232f}.primary{composes:primary from '../foundation.module.css';}.primary:hover{background:#5438db}.secondary:hover{background:#eeedf5}
+.page button:focus-visible,.page a:focus-visible,.procedure summary:focus-visible{outline:2px solid #6549f7;outline-offset:4px}
+@media(max-width:350px){.procedureHeading{gap:8px}.procedure h2{font-size:15px}.status{}.header h1{font-size:22px}.wideBreak{display:none}}
+@media(prefers-reduced-motion:reduce){.procedureCaption svg{transition:none}}
+
+/* Procedure cards follow the illustration-left/copy-right reference pattern. */
+.procedures{gap:12px}.procedure{padding:16px;background:#eee7ff}.procedure.assessment{background:#fff0df}.procedure.restricted{background:#fff}
+.procedure summary{display:flex;align-items:center;gap:12px}.procedureArt{position:relative;flex:0 0 80px;width:80px;height:80px}.procedureArt img{position:absolute;inset:0;width:80px;height:80px}.procedureCopy{flex:1;min-width:0}.procedure h2{margin:0}.status{display:block;text-align:left;margin:2px 0 4px}.procedureDescription{font-size:14px;line-height:23px;color:#33293d;margin:0;min-height:46px;max-height:69px;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden}.procedureCaption{justify-content:flex-start;gap:4px;color:#5438bd;margin-top:4px;min-height:24px}.procedureCaption svg{width:14px;height:14px}
+@media(max-width:350px){.procedure{padding:12px}.procedure summary{gap:8px}.procedure h2{font-size:16px}.status{}.procedureDescription{font-size:14px}}
+
+.procedureHeading{display:flex;align-items:baseline;justify-content:space-between;gap:8px}.procedureHeading h2{min-width:0;flex:1}.procedureHeading .status{margin:0;flex:0 0 auto;text-align:right;max-width:90px;white-space:normal}.procedureDescription{margin-top:8px}
+
+/* White surfaces across all procedure statuses; status text carries the meaning. */
+.procedure,.procedure.assessment,.procedure.restricted{background:#fff;box-shadow:0 4px 16px rgb(63 43 107 / 6%)}
+
+.hero h1{font-size:24px;line-height:34px;font-weight:700;margin:24px 0 0;letter-spacing:-.4px;outline:none}.hero{padding-top:32px}.hero p{margin-top:12px}
+
+.procedureBody{display:flex;align-items:center;gap:12px}.procedureHeading .status{max-width:none;white-space:nowrap}.available .status{background:#E5F5EC;color:#21745C}.assessment .status{background:#FFF3CC;color:#8A640D}.restricted .status{background:#FCE8EB;color:#B13D50}
+@media(max-width:350px){.procedureBody{gap:8px}.procedureHeading{flex-wrap:wrap;gap:4px}.procedureHeading h2{flex-basis:100%}}
+
+.procedureHeading .status{}
+
+/* Keep each title vertically centered against its badge. */
+.procedureHeading{align-items:center}.procedureDescription{margin-top:4px}
+
+.hero{animation:resultEnter 400ms both}.procedure{animation:resultEnter 420ms both}.procedure:nth-child(2){animation-delay:70ms}.procedure:nth-child(3){animation-delay:140ms}.procedure:nth-child(4){animation-delay:210ms}.procedure:nth-child(5){animation-delay:280ms}.procedure:nth-child(6){animation-delay:350ms}@keyframes resultEnter{from{opacity:0;translate:0 16px}to{opacity:1;translate:0 0}}@media(prefers-reduced-motion:reduce){.hero,.procedure{animation:none}}
+
+.fromProcessing .hero{animation:none}.fromProcessing .heroArt{animation:moveResultArt 650ms cubic-bezier(.22,1,.36,1) both}.fromProcessing .hero h1,.fromProcessing .hero p{animation:resultEnter 400ms 400ms both}.fromProcessing .procedure{animation-delay:650ms}.fromProcessing .procedure:nth-child(2){animation-delay:720ms}.fromProcessing .procedure:nth-child(3){animation-delay:790ms}.fromProcessing .procedure:nth-child(4){animation-delay:860ms}.fromProcessing .procedure:nth-child(5){animation-delay:930ms}.fromProcessing .procedure:nth-child(6){animation-delay:1000ms}.fromProcessing .footer{animation:resultEnter 400ms 900ms both}@keyframes moveResultArt{from{translate:0 calc(50dvh - 179px)}to{translate:0 0}}@media(prefers-reduced-motion:reduce){.fromProcessing .heroArt,.fromProcessing .hero h1,.fromProcessing .hero p,.fromProcessing .procedure,.fromProcessing .footer{animation:none}}
+.procedureHeading .status{}
+
+.status{composes:badge from '../badge.module.css';}
+
+/* One CTA shape across questionnaire, booking, review and journal. */
+.footer button,.footer a{border-radius:20px;font-weight:500}
