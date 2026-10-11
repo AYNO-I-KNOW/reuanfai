@@ -48,8 +48,6 @@
 .device { display: inline-flex; align-items: center; gap: 6px; margin-top: 6px; font-size: 12px; color: #6c6e82; }
 .arrow { flex-shrink: 0; align-self: center; color: #6549f7; }
 
-.note { margin: 24px 0 0; font-size: 12px; line-height: 1.6; color: #6c6e82; text-align: center; }
-
 @media (min-width: 600px) {
   .page { padding-top: 72px; }
   .role { padding: 20px; }
