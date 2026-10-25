@@ -1,0 +1,26 @@
+.shell{--tab-travel:min(100vw,600px);height:100dvh;width:100%;overflow:hidden;position:relative}.sharedBackground{background:#f4f2fc linear-gradient(165deg,#d4c9fa 0%,#e9e3fc 19%,#f1eefb 42%,#f4f2fc 100%)}.body{height:100%;width:100%;position:relative}.body[data-tab-root=true]>main,.body[data-tab-root=true] [data-home-canvas]{background:transparent;background-image:none}.out{animation:tabOut 180ms cubic-bezier(.4,0,1,1) both}.waiting{opacity:0;pointer-events:none}.in{animation:tabIn 280ms cubic-bezier(.22,1,.36,1) both}.body.homeOut [data-home-sheet]{animation:homeDown 260ms cubic-bezier(.4,0,.8,.2) both}.body.homeOut [data-home-header]{animation:headerOut 180ms ease-in both}
+@keyframes tabOut{from{translate:0 0;opacity:1}to{translate:calc(var(--tab-direction,1) * var(--tab-travel) * -1) 0;opacity:0}}
+@keyframes tabIn{from{translate:calc(var(--tab-direction,1) * var(--tab-travel)) 0;opacity:0}to{translate:0 0;opacity:1}}
+@keyframes homeDown{from{translate:0 0;opacity:1}to{translate:0 100%;opacity:0}}
+@keyframes headerOut{from{opacity:1}to{opacity:0}}
+@media(prefers-reduced-motion:reduce){.out,.in,.body.homeOut [data-home-sheet],.body.homeOut [data-home-header]{animation:none}}
+
+/* Returning Home settles the route first, then raises its sheet. */
+.body[data-home-return=true] [data-home-sheet]{animation:none;translate:0 100%;opacity:0}
+.body.homeIn[data-home-return=true] [data-home-sheet]{animation:homeReturn 420ms cubic-bezier(.22,1,.36,1) 100ms both}
+.body[data-home-return=true][data-phase=idle] [data-home-sheet]{translate:0 0;opacity:1}
+@keyframes homeReturn{from{translate:0 100%;opacity:.8}to{translate:0 0;opacity:1}}
+@media(prefers-reduced-motion:reduce){.body.homeIn[data-home-return=true] [data-home-sheet]{animation:none;translate:0 0;opacity:1}}
+
+/* The mother app owns its viewport; only inner lists scroll. */
+:global(html):has(.shell),:global(body):has(.shell){height:100%;overflow:hidden;overscroll-behavior:none;background-color:#f4f2fc}
+.sharedBackground{position:fixed;inset:0;overscroll-behavior:none}
+.body[data-tab-root=true]>main{overflow:hidden}
+.body[data-tab-root=true] [class*=tabPage],.body[data-tab-root=true] [class*=scrollArea]{overscroll-behavior:none}
+
+.detailIn{animation:chatRouteIn 280ms cubic-bezier(.22,1,.36,1) both}.detailOut{animation:chatRouteOut 180ms cubic-bezier(.4,0,1,1) both}.body.detailIn>main{animation:none}
+@keyframes chatRouteIn{from{translate:48px 0;opacity:0}to{translate:0 0;opacity:1}}
+@keyframes chatRouteOut{from{translate:0 0;opacity:1}to{translate:48px 0;opacity:0}}
+@media(prefers-reduced-motion:reduce){.detailIn,.detailOut{animation:none}}
+
+.chatBackground{background:#ece8fa}

@@ -1,0 +1,281 @@
+.chat{height:100dvh;max-width:600px;margin:auto;display:flex;flex-direction:column;font:14px/1.5 "ReuanFai UI",sans-serif;color:#27232f;width:100%;}
+.ubot-chat {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  background: #ece8fa;
+}
+.ubot-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 24px;
+  padding-top: max(16px, env(safe-area-inset-top));
+  background: transparent;
+}
+.ubot-back,
+.ubot-send {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  min-height: 40px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+}
+.ubot-back {
+  width: 44px;
+  height: 44px;
+  background: #fff;
+  box-shadow: 0 2px 10px #30265b06;
+}
+.ubot-back img {
+  width: 40px;
+  height: 40px;
+  transform: rotate(180deg);
+}
+.ubot-profile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px 8px 8px;
+  border-radius: 999px;
+  background: #fff;
+}
+.ubot-send img {
+  width: 24px;
+  height: 24px;
+}
+.ubot-avatar {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  background: #eee8ff;
+  color: #5438db;
+  font-size: 24px;
+  font-weight: 700;
+}
+.ubot-identity h1 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 500;
+}
+.ubot-identity {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.ubot-messages {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 24px 16px;
+  overscroll-behavior: contain;
+}
+.ubot-bubble {
+  flex-shrink: 0;
+  max-width: 84%;
+  padding: 12px 16px;
+  border-radius: 19px 19px 19px 0;
+  background: #fff;
+  color: #45434f;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+  animation: ubot-message-in 220ms ease-out both;
+}
+.ubot-user {
+  align-self: flex-end;
+  border-radius: 20px 20px 0 20px;
+  background: #6549f7;
+  color: #fff;
+}
+.ubot-composer {
+  padding: 16px 24px;
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
+  background: #fff;
+}
+.ubot-composer form {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.ubot-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+  height: 40px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: #eee8ff;
+}
+.ubot-input-wrap input {
+  flex: 1;
+  width: 0;
+  min-width: 0;
+  height: 32px;
+  min-height: 0;
+  padding: 4px 8px;
+  border: 0;
+  background: transparent;
+  color: #27232f;
+  font-size: 14px;
+}
+.ubot-input-wrap input::placeholder {
+  color: #82808e;
+  opacity: 1;
+}
+.ubot-send {
+  width: 32px;
+  height: 32px;
+  min-height: 32px;
+  background: #6549f7;
+}
+.ubot-send:disabled {
+  opacity: 0.45;
+}
+@keyframes ubot-message-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ubot-bubble {
+    animation: none;
+  }
+}
+
+.ubot-input-wrap input:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
+.ubot-typing {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 36px;
+  padding: 12px 16px;
+}
+.ubot-typing span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #6549f7;
+  animation: ubot-typing-dot 1.2s ease-in-out infinite;
+}
+.ubot-typing span:nth-child(2) {
+  animation-delay: 150ms;
+}
+.ubot-typing span:nth-child(3) {
+  animation-delay: 300ms;
+}
+.ubot-send {
+  transition:
+    opacity 180ms ease,
+    transform 160ms ease;
+}
+.ubot-send:not(:disabled):active {
+  transform: scale(0.92);
+}
+.ubot-user {
+  transform-origin: bottom right;
+}
+@keyframes ubot-typing-dot {
+  0%,
+  60%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.45;
+  }
+  30% {
+    transform: translateY(-4px);
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ubot-typing span {
+    animation: none;
+  }
+  .ubot-send {
+    transition: none;
+  }
+}
+
+.ubot-quick-prompts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-bottom: 16px;
+}
+.ubot-quick-prompts button {
+  min-height: 36px;
+  padding: 8px 12px;
+  border: 1px solid #ddd7ff;
+  border-radius: 999px;
+  background: #fff;
+  color: #625b78;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.5;
+  text-align: left;
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    transform 160ms ease;
+}
+.ubot-quick-prompts button:not(:disabled):hover {
+  background: #eee8ff;
+  border-color: #6549f7;
+}
+.ubot-quick-prompts button:not(:disabled):active {
+  transform: scale(0.98);
+}
+.ubot-quick-prompts button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ubot-quick-prompts button {
+    transition: none;
+  }
+}
+
+.notice{font-size:12px;color:#625d70;padding:0 24px 8px;margin:0}.chat input,.chat button{font-family:inherit}.chat button,.chat a{color:inherit}.chat :focus-visible{outline:2px solid #6549f7;outline-offset:3px}.chat .ubot-send{color:#fff}.chat .ubot-back{text-decoration:none}.chat .ubot-chat{height:100%;overflow:hidden}
+
+.chat .ubot-agent-label{font-size:11px;padding:2px 5px;border-radius:6px;background:#eee8ff;color:#6549f7}
+
+.ubot-header,.ubot-composer{flex-shrink:0}.ubot-input-wrap{height:48px;padding:4px 6px 4px 8px}.ubot-input-wrap input{height:40px;font-size:16px}.ubot-send{width:40px;height:40px;min-height:40px}.chat .ubot-send{color:#fff}.ubot-profile{min-width:0}.ubot-identity h1{white-space:nowrap}.ubot-quick-prompts{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}.ubot-quick-prompts button{flex-shrink:0;min-height:44px}.ubot-composer{padding-left:16px;padding-right:16px}.ubot-header{padding-left:16px;padding-right:16px}.ubot-messages{scrollbar-width:thin}.ubot-user{animation:ubot-message-in 220ms ease-out both}@keyframes chatEnter{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}@media(max-height:500px){.ubot-header{padding-top:8px;padding-bottom:8px}.ubot-composer{padding-top:8px}.ubot-messages{padding-top:12px;padding-bottom:12px}.notice{margin-bottom:0}}@media(prefers-reduced-motion:reduce){.chat,.ubot-user{animation:none}}
+
+.ubot-verified{width:18px;height:18px;flex-shrink:0}
+
+.chat .emergencyTrigger{margin-left:auto;display:grid;place-items:center;flex:0 0 44px;width:44px;height:44px;padding:0;border:0;border-radius:50%;background:#6549f7;color:#fff;cursor:pointer;transition:background-color 160ms ease,transform 160ms ease}.chat .emergencyTrigger:hover{background:#5438db}.emergencyTrigger:active{transform:scale(.95)}@media(prefers-reduced-motion:reduce){.chat .emergencyTrigger{transition:none}}
+
+.chat .emergencyPrimary{color:#fff}
+/* Suggested topics sit directly on the chat canvas. */
+.ubot-composer{background:transparent}.ubot-quick-prompts button{background:transparent}.ubot-quick-prompts button:not(:disabled):hover{background:rgba(255,255,255,.35)}
+/* White topic chips float subtly above the lavender chat canvas. */
+.ubot-quick-prompts{padding-top:4px}.ubot-quick-prompts button{background:#fff;border-color:rgba(255,255,255,.85);box-shadow:0 2px 6px rgba(54,35,100,.06)}.ubot-quick-prompts button:not(:disabled):hover{background:#faf8ff;border-color:#e4dcfa}
+.ubot-input-wrap{background:#fff;box-shadow:0 2px 8px rgba(54,35,100,.06)}
+
+.chat{height:var(--chat-height,100dvh)}.ubot-header{padding-top:calc(16px + env(safe-area-inset-top,0px))}.ubot-composer{padding-bottom:calc(16px + env(safe-area-inset-bottom,0px))}

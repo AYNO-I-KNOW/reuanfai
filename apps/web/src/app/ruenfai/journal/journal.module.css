@@ -32,3 +32,5 @@
 
 /* Match the established review and questionnaire text fields. */
 .form textarea{box-sizing:border-box;background:#fff;border:1px solid #e4dfef;border-radius:20px;padding:16px;color:#27232f;font:400 14px/23px 'ReuanFai UI',sans-serif;min-height:112px;resize:vertical}.form textarea::placeholder{color:#8b8796;opacity:1}.form textarea:focus-visible{border-color:#6549f7;outline:none;box-shadow:inset 0 0 0 1px #6549f7}.illustration{width:64px;height:64px;object-fit:contain}
+
+.moodVector{display:block;width:100%;height:auto;aspect-ratio:1}.illustration{object-fit:contain}

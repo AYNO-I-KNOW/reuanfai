@@ -100,9 +100,9 @@
 
 /* Connect adjacent card centers with a single thin rail. */
 .timeline:before{display:none}
-.timeline li:before{left:-24px;top:50%;transform:translateY(-50%);width:6px;height:6px}
-.timeline li:not(:last-child):after{content:'';position:absolute;left:-21.5px;top:50%;width:1px;height:calc(50% + 10px);background:#dcd6eb}
-.timeline li:not(:first-child)>a:before{content:'';position:absolute;left:-21.5px;top:0;height:50%;width:1px;background:#dcd6eb;pointer-events:none}
+.timeline li:before{left:-25px;top:50%;transform:translateY(-50%);width:8px;height:8px;background:#6549f7;box-shadow:none}
+.timeline li:after{content:'';position:absolute;left:-22px;top:0;bottom:-10px;width:2px;height:auto;background:#d0ccd8;border-radius:999px;pointer-events:none}.timeline li:first-child:after{top:50%}.timeline li:last-child:after{bottom:50%}.timeline li:only-child:after{display:none}
+
 .dayComplete{min-height:280px;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:28px 12px;gap:12px}
 .dayComplete h3{margin:0;font-size:18px;line-height:27px;font-weight:600}
 .dayComplete p{margin:0;color:#625d70;font-size:14px;line-height:22px}
@@ -119,7 +119,7 @@
 
 .months{background:transparent}
 .journalTaskButton{width:100%;font:inherit;text-align:left;cursor:pointer}
-.timeline li:not(:first-child)>button:before{content:"";position:absolute;left:-21.5px;top:0;height:50%;width:1px;background:#dcd6eb;pointer-events:none}
+
 
 .pill{composes:badge from './badge.module.css';}
 
@@ -133,3 +133,53 @@
 /* Home: tight top inset, swipeable week strip. */
 .canvas{--home-top:12px}.home{padding-top:calc(var(--home-top) + env(safe-area-inset-top,0px))}.months{top:calc(var(--home-top) + 61px + env(safe-area-inset-top,0px))}@media(max-height:700px){.months{top:calc(var(--home-top) + 54px + env(safe-area-inset-top,0px))}}
 .week{display:block;margin:0;padding:18px 16px 20px;touch-action:none;user-select:none}.weekTrack{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px;transition:transform 200ms ease-out}.weekTrack.weekDragging{transition:none}.weekSlide{animation:weekSlide 240ms cubic-bezier(.22,1,.36,1) backwards}@keyframes weekSlide{from{transform:translateX(var(--week-enter,100%));opacity:.4}to{transform:translateX(0);opacity:1}}@media(max-width:350px){.weekTrack{gap:2px}}@media(min-width:450px){.week{padding-left:24px;padding-right:24px}}@media(prefers-reduced-motion:reduce){.weekTrack{transition:none}.weekSlide{animation:none}}
+
+/* Activity list owns vertical scrolling in every sheet position. */
+.scrollArea{flex:1;overflow-x:hidden;overflow-y:auto;touch-action:pan-y;overflow-anchor:none}.scrollArea:active{cursor:grabbing}
+
+/* Date navigation: old day exits before the selected day's content enters. */
+.dayContent{min-height:100%;display:flex;flex-direction:column}.dayContent.dayOut{animation:dayExit 180ms cubic-bezier(.4,0,1,1) both}.dayContent.dayIn{animation:dayEnter 280ms cubic-bezier(.22,1,.36,1) both}.dayHeading.dayOut{animation:dayTitleExit 180ms ease-in both}.dayHeading.dayIn{animation:dayTitleEnter 280ms ease-out both}
+@keyframes dayExit{from{translate:0 0;opacity:1}to{translate:calc(var(--day-direction,1) * -100%) 0;opacity:0}}
+@keyframes dayEnter{from{translate:calc(var(--day-direction,1) * 100%) 0;opacity:0}to{translate:0 0;opacity:1}}
+@keyframes dayTitleExit{from{translate:0 0;opacity:1}to{translate:calc(var(--day-direction,1) * -20px) 0;opacity:0}}
+@keyframes dayTitleEnter{from{translate:calc(var(--day-direction,1) * 20px) 0;opacity:0}to{translate:0 0;opacity:1}}
+/* Initial Home entrance uses translate, independent of the draggable transform. */
+.home .sheet{animation:homeSheetEnter 420ms cubic-bezier(.22,1,.36,1) both}.home .homeHeader{animation:homeGreetingEnter 320ms ease-out both}
+@keyframes homeSheetEnter{from{translate:0 18px;opacity:.75}to{translate:0 0;opacity:1}}
+@keyframes homeGreetingEnter{from{translate:0 6px;opacity:0}to{translate:0 0;opacity:1}}
+@media(prefers-reduced-motion:reduce){.dayContent.dayOut,.dayContent.dayIn,.dayHeading.dayOut,.dayHeading.dayIn,.home .sheet,.home .homeHeader{animation:none}}
+
+/* Home sheet elevation, scoped away from nested modal sheets. */
+.home .sheet{border-radius:40px 40px 0 0;box-shadow:0 -4px 20px rgba(62,41,105,.06),0 -1px 4px rgba(62,41,105,.025)}.home .sheet.expanded{border-radius:0;box-shadow:none}
+/* Home cards use elevation rather than a visible outline. */
+.home .activity{border-color:transparent;box-shadow:0 3px 12px rgba(49,35,82,.075),0 1px 3px rgba(49,35,82,.025)}
+
+/* Floating frosted-glass navigation with a restrained reflective edge. */
+.bottomNav .navItems{background:linear-gradient(135deg,rgba(255,255,255,.56),rgba(255,255,255,.28));border:1px solid rgba(255,255,255,.72);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);box-shadow:0 8px 24px rgba(47,36,86,.09),inset 0 1px 0 rgba(255,255,255,.85),inset 0 -1px 0 rgba(255,255,255,.25)}
+.bottomNav:before{opacity:.3}
+@supports not (backdrop-filter:blur(1px)){.bottomNav .navItems{background:rgba(255,255,255,.92)}}
+
+@media(prefers-reduced-transparency:reduce),(prefers-contrast:more){.bottomNav .navItems{background:#fff;-webkit-backdrop-filter:none;backdrop-filter:none}}
+
+/* Keep the floating navigation compact on wide screens. */
+.bottomNav{max-width:520px}
+
+.bottomNav{max-width:600px;justify-content:space-between}.bottomNav .navItems{flex:1 1 0;max-width:420px}
+
+/* Base breathing room is present even on devices reporting zero safe insets. */
+.canvas{--home-top:24px;--nav-bottom-space:calc(16px + env(safe-area-inset-bottom,0px))}
+.bottomNav{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.tabPage{padding-top:calc(24px + env(safe-area-inset-top,0px))}.appointmentGrid{margin-top:24px}
+.referenceAppointments .appointmentCard{gap:10px}.referenceAppointments .appointmentCard h2{line-height:27px}.appointmentCard .appointmentStatusDescription{line-height:23px;min-height:46px}
+.medicineDialog{padding-bottom:calc(16px + env(safe-area-inset-bottom,0px))}
+
+/* One position channel avoids opposing top/transform easing on release. */
+.home .sheet{transition:top 360ms cubic-bezier(.22,1,.36,1),border-radius 360ms cubic-bezier(.22,1,.36,1)}
+.home .sheet.dragging{transition:none}
+.months,.week{transition:opacity 360ms cubic-bezier(.22,1,.36,1);will-change:opacity}
+.home.dragging .months,.home.dragging .week{transition:none}
+@media(prefers-reduced-motion:reduce){.home .sheet,.months,.week{transition:none}}
+
+/* Short displays retain access to every date above the sheet. */
+.months{bottom:auto;overflow-y:auto;overflow-x:hidden;scrollbar-width:none}
+.month{touch-action:pan-y}
