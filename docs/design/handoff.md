@@ -3,11 +3,12 @@
 > สถานะ: อัปเดต handoff รอบ 1 · 2026-10-05 · ตรวจโค้ดฐาน e0c7796 และร่าง handoff 518967c บน branch `thanid-design`
 > ไฟล์นี้ไม่ใช่ผล design review — review แยกที่ `docs/design-review/` ตาม `DESIGN-REVIEW.md` (ยังไม่มีโฟลเดอร์นี้)
 > ข้อเท็จจริงทุกข้ออ่านจากโค้ดใน `apps/web` · path ไม่มี prefix = ใต้ `apps/web/src/app/` · "ต้องยืนยัน" = โค้ดไม่พอให้สรุป
+> อัปเดต 2026-10-26: เจ้าของสั่งรับ design ที่ merge ใน `0958fdd` ตามที่เป็น → ADR-0015 (แชท, ชำระเงินสาธิต, ติดต่อด่วนเป็น route) · ตารางใน §2 ยังเป็นภาพของ e0c7796 ยกเว้นแถวที่ระบุ ADR-0015
 > ภาพรวม: ไม่มีหน้าใดเรียก API จริง ยกเว้น `/` (`api.health`) · ข้อมูลทั้งหมดมาจาก mock + localStorage/in-memory
 
 ## 0. Context สำหรับทีมพัฒนา
 - Figma: [ไฟล์ UI](https://www.figma.com/design/vijW6m6e4GshKUfYWTiCaZ) · ตรวจ metadata ของ node ที่ระบุใน §2 อีกครั้งวันที่ 2026-10-05 ไม่ใช่การรับรองว่า Figma ตรงกับโค้ดทุก state
-- Phase: รอบ handoff นี้เป็น **รอบ 1** ครอบคลุม UI prototype ที่เกี่ยวข้องกับ phase 1–5 ใน screen-map; **ยังไม่มี phase ใดที่ยืนยันว่าผ่าน design review ครบ** โดยเฉพาะ M4-R, M8, M11 และ D8 ยังไม่มี UI ในโค้ด
+- Phase: รอบ handoff นี้เป็น **รอบ 1** ครอบคลุม UI prototype ที่เกี่ยวข้องกับ phase 1–5 ใน screen-map; **ยังไม่มี phase ใดที่ยืนยันว่าผ่าน design review ครบ** โดยเฉพาะ D8 ยังไม่มี UI ในโค้ด · M4-R, M8, M11 มี UI แล้วหลัง `0958fdd` (ดู §4) แต่ยังไม่ผ่าน review
 - ผู้ติดต่อด้าน UX/UI: ฐานิศร์ จรูญสิริเศรษฐ์ (ออฟ) ตาม `README.md:19`; Product: เกรพ · AI/Backend: พู
 - แหล่งส่งต่อหลัก: โค้ดใน Git และเอกสารนี้ ใช้เส้นทาง `/ruenfai`, `/clinic`, `/department` สำหรับตรวจ prototype; `/` เป็นหน้า dev ส่วน `/dtam` และ `/dtam/design-system` เป็นงานเดิมที่ผู้ใช้ระบุว่าทำผิดที่และตั้งใจลบทิ้ง จึงไม่อยู่ในขอบเขตส่งมอบรอบนี้
 - ผลตรวจรอบนี้: `node --test apps/web/tests/*.mjs` ผ่าน 15/15 · web typecheck และ ESLint ผ่าน ไม่ได้ replay ทุก browser state ในรอบเอกสารนี้
@@ -73,7 +74,9 @@ README ใน `public/` ครอบคลุมเฉพาะฟอนต์ �
 | `/ruenfai/review` | `review/page.tsx` | M10 (บางส่วน) | `m/review/[id]` (code ไม่มี `[id]`) | บันทึกลง localStorage `reuanfai-demo-reviews-v1` | `POST /me/appointments/:id/review` | dialog ยืนยัน · loading 1.5 วินาที (ปลอม) · success · error "ส่งรีวิวไม่สำเร็จ กรุณาลองอีกครั้ง" · ให้คะแนน 4 ข้อ ✅ · **ไม่มี** painAfter, adverse/adverseText | พัฒนาในโค้ด; ยังไม่มี frame เฉพาะที่ยืนยัน |
 | `/ruenfai/journal` | `journal/page.tsx` | – ไม่มีใน screen-map | – | `JournalState.tsx` (in-memory, seed 3 รายการ, หายเมื่อรีโหลด) | ไม่มีใน api.md | empty-day card "เขียนบันทึก" · ไม่มี loading/error | พัฒนาในโค้ด; ยังไม่มี frame เฉพาะที่ยืนยัน |
 | `/ruenfai/growth` · `/baby` · `/profile` | `growth/` `baby/` `profile/` | alias (re-export `journal` / `medicines` / `appointments`) | – | – | – | `BottomNav.tsx:14` ทำให้ tab active ตาม alias | [Navigation 3:671](https://www.figma.com/design/vijW6m6e4GshKUfYWTiCaZ?node-id=3-671) · [Canvas 3:582](https://www.figma.com/design/vijW6m6e4GshKUfYWTiCaZ?node-id=3-582) · labels/icons/emergency ปรับในโค้ด |
-| (ทุกหน้า `/ruenfai/*` ยกเว้น onboarding, review) | `ruenfai/BottomNav.tsx` | M12 (บางส่วน — เป็น dialog ไม่ใช่หน้า) | `m/emergency` | เบอร์ผู้ติดต่อฉุกเฉินจาก localStorage `ruenfai-emergency-phone` (default `0812345678`) | `GET /me` (`unitPhone`) | dialog: โทร 1669 + โทรผู้ติดต่อฉุกเฉินของแม่ · **ไม่มี** รายการ 7 อาการส่งต่อ · ไม่ใช้ `unitPhone` | [Navigation 3:671](https://www.figma.com/design/vijW6m6e4GshKUfYWTiCaZ?node-id=3-671) · [Canvas 3:582](https://www.figma.com/design/vijW6m6e4GshKUfYWTiCaZ?node-id=3-582) · labels/icons/emergency ปรับในโค้ด |
+| `/ruenfai/emergency` + dialog ในหัว `/ruenfai/chat` (**ADR-0015** — เดิมเป็น dialog ใน `BottomNav.tsx`) | `ruenfai/emergency/page.tsx` · `ruenfai/chat/page.tsx` | M12 (route + dialog) | `m/emergency` | เบอร์ผู้ติดต่อฉุกเฉิน: route อ่าน `motherProfile` (`reuanfai-mother-profile-v1`) · dialog ในแชทอ่าน localStorage `ruenfai-emergency-phone` · ไม่มีเบอร์หน่วยบริการ | `GET /me` (`unitPhone`) | โทร 1669 + โทรผู้ติดต่อฉุกเฉิน · route มีรายการ 7 อาการ · ปุ่มใน bottom nav ถูกแทนด้วยปุ่มเข้าแชท จาก tab ต้องกด 2 ครั้ง · route เข้าจาก `refer` เท่านั้น ไม่ใช้ `unitPhone` | [Navigation 3:671](https://www.figma.com/design/vijW6m6e4GshKUfYWTiCaZ?node-id=3-671) · [Canvas 3:582](https://www.figma.com/design/vijW6m6e4GshKUfYWTiCaZ?node-id=3-582) · ส่วนที่เพิ่มหลัง `0958fdd` อยู่ในโค้ด ไม่มีหลักฐาน frame |
+| `/ruenfai/chat` (**ADR-0015**) | `ruenfai/chat/page.tsx` | M14 | – | ข้อความตายตัวชุดเดียว (หน่วง 1.2 วินาที) · ข้อความอยู่ใน React state | ไม่มี (ยังไม่มี endpoint) | quick prompt 3 ข้อ (รวม "สอบถามเรื่องยา") · เข้าจากปุ่มขวาสุดของ bottom nav (aria "สนทนากับผู้ช่วย AI") · ซ่อน bottom nav · ไม่มี AI/LLM | พัฒนาในโค้ด; ยังไม่มี frame เฉพาะที่ยืนยัน |
+| `/ruenfai/payment` (**ADR-0015**) | `ruenfai/payment/page.tsx` · `payment-state.ts` | M15 | – | ราคาตายตัว · "จ่ายแล้ว" ใน sessionStorage `ruenfai-payment-ui-v1` | ไม่มี (ไม่มี endpoint/ตาราง) | เข้าจากการ์ดนัดหมาย · 3 วิธีชำระ ไม่เชื่อมระบบ · "สาธิต · ยังไม่มีการเรียกเก็บเงินจริง" · ซ่อน bottom nav | พัฒนาในโค้ด; ยังไม่มี frame เฉพาะที่ยืนยัน |
 
 ### 2.3 ฝั่งหน่วยบริการ (`/clinic` = re-export ของ `/provider/design-preview`)
 
@@ -102,15 +105,14 @@ README ใน `public/` ครอบคลุมเฉพาะฟอนต์ �
 
 ## 3. หน้าใน screen-map ที่ยังไม่มีในโค้ด
 
+> M4-R, M8, M11 มี UI ในโค้ดแล้วหลัง `0958fdd` → ย้ายไป §4 (ยังไม่ผ่าน design review)
+
 | ID | หน้า | phase | สถานะ Figma |
 |---|---|---|---|
 | M0 | ห้องแชท LINE (rich menu) | 1 | ยังไม่ยืนยัน frame หรือขอบเขต rich menu; ไม่มี implementation ใน `apps/web` |
-| M4-R | ควรไปพบแพทย์ (`referral_locks`, ไม่มีปุ่มจอง) | 1 | ยังไม่ยืนยัน frame; ไม่มี UI ในโค้ด |
-| M8 | เช็กอินก่อนนัด | 2 | ยังไม่ยืนยัน frame; ไม่มี UI ในโค้ด |
-| M11 | จัดการการแชร์ข้อมูล / ถอน consent / ลบข้อมูล | 5 | ยังไม่ยืนยัน frame; onboarding อ้างถึง “การแชร์ข้อมูลของฉัน” แต่ยังไม่มีหน้าในโค้ด |
 | D8 | ชุดกฎ | 6 | ยังไม่ยืนยัน frame และยังไม่มี UI ในโค้ด |
 
-มีในโค้ดแต่ไม่ครบตาม spec (รายละเอียดอยู่ §2): M1 ไม่บันทึก · M2 ไม่มีโหมดแก้ไข/คำนวณใหม่ · M3 ไม่แยกตามเงื่อนไข/ไม่มี refer · M4 ขาดสถานะ `not_yet`, reason, เลขหน้า · M6 รวม 4 หน้าเป็นหน้าเดียว · M9 ขาด mode, อาการผิดปกติ · M10 ขาด painAfter, adverse · M12 เป็น dialog ไม่มี 7 อาการ · P1 ไม่มี role/unit · D4/D6 ไม่มีหน้าแยก (รวมอยู่ใน view ของ D1/D2)
+มีในโค้ดแต่ไม่ครบตาม spec (รายละเอียดอยู่ §2): M1 ไม่บันทึก · M2 ไม่มีโหมดแก้ไข/คำนวณใหม่ · M3 ไม่แยกตามเงื่อนไข/ไม่มี refer · M4 ขาดสถานะ `not_yet`, reason, เลขหน้า · M6 รวม 4 หน้าเป็นหน้าเดียว · M9 ขาด mode, อาการผิดปกติ · M10 ขาด painAfter, adverse · M12 เปลี่ยนเป็น route + dialog หัวแชท (ADR-0015) ไม่ใช้ unitPhone · P1 ไม่มี role/unit · D4/D6 ไม่มีหน้าแยก (รวมอยู่ใน view ของ D1/D2)
 การตรวจ Figma รอบนี้ยืนยันเฉพาะ node ใน §2; ยังไม่มีหลักฐานว่าหน้า missing เหล่านี้มี frame แยก ไม่สรุปว่าไม่มีในไฟล์ทั้งชุด
 
 ## 4. หน้าในโค้ดที่ไม่มีใน screen-map
@@ -127,6 +129,12 @@ README ใน `public/` ครอบคลุมเฉพาะฟอนต์ �
 | ฝั่งหน่วยบริการ: ติดตามเรื่อง (ผู้รับผิดชอบ/สถานะ 3 ค่า/บันทึก) | api.md มีแค่ `POST /provider/alerts/:id/contacted` | อยู่ใน prototype; mapping จากสถานะ UI ไป alert contract รอตัดสิน (R-10) |
 | ฝั่งหน่วยบริการ: เพิ่มแพทย์ + รูป + สีการ์ด | data-model มี `staff` แต่ไม่มี photo/color · อยู่ใน P2? | อยู่ใน prototype; staff management/photo/color รอตัดสิน (R-11) |
 | กรมฯ: ลิงก์ "ระบบหน่วยบริการ" ใน sidebar → `/clinic` | สลับฝั่งโดยตรง (api: คนละ role) | ทางลัดตรวจ prototype; ต้องตรวจ role จริงก่อน production (R-12) |
+| `/ruenfai/chat` (M14) | แชท "ผู้ช่วยส่วนตัว" ข้อความตายตัว ไม่มี AI · เข้าจาก bottom nav ปุ่มขวา | รับโดย ADR-0015 · เนื้อหาต้องไม่แนะนำยา/หัตถการรายบุคคล · AI จริง = SPEC Q21 |
+| `/ruenfai/payment` (M15) | สรุปค่าใช้จ่ายสาธิต เข้าจากการ์ดนัดหมาย | รับโดย ADR-0015 เป็น UI สาธิตเท่านั้น · ชำระเงินจริง = SPEC Q22 |
+| `/ruenfai/emergency` (M12) | ติดต่อด่วน: 1669, ผู้ติดต่อฉุกเฉิน, 7 อาการ | รับโดย ADR-0015 แทน sheet ใน bottom nav · เข้าจาก `refer` เท่านั้น · หัวแชทมี dialog ติดต่อด่วน |
+| `/ruenfai/refer` (M4-R) | ควรไปพบแพทย์ + ปุ่ม "ฉันติดต่อแล้ว" (เก็บใน `reuanfai-care-journey-v1`) | implement แล้ว ยังไม่ผ่าน design review · เข้าจากการ์ดนัดหมายเมื่อ `referralLocked` · ผลเช็กอิน `referred` พรีวิวไม่เคยสร้าง (Q26) |
+| `/ruenfai/checkin` (M8) | เช็กอิน 5 ข้อ + ความปวด เลือกนัดจาก dropdown (spec: `checkin/[id]`) | implement แล้ว ยังไม่ผ่าน design review · ผลเป็น `awaiting_eval` เสมอ (ห้าม web คำนวณ — ADR-0001; Q23) · ไม่มีลิงก์เข้า (Q26) |
+| `/ruenfai/sharing` (M11) | จัดการแชร์/ถอน consent/ลบข้อมูล (สถานะใน `reuanfai-care-journey-v1`) | implement แล้ว ยังไม่ผ่าน design review · ไม่มีลิงก์เข้าจากหน้าใด (Q26) · ข้อมูลสุขภาพสาธิตใน localStorage ต้องย้ายหลัง api + auth (Q24) |
 | Dev-only: panel `MobileFlowShortcuts` | แสดงเมื่อ `NODE_ENV !== 'production'` (`ruenfai/layout.tsx`) | – (dev) |
 
 ## 5. Data shape ใน mock vs API spec
@@ -249,7 +257,7 @@ README ใน `public/` ครอบคลุมเฉพาะฟอนต์ �
 | 3 | ปุ่ม มี/ไม่มี/ไม่แน่ใจ ขนาดเท่ากัน สีเดียว ไม่ใช้แดง/เขียว | ✅ 3 คอลัมน์เท่ากัน สไตล์เดียว | `ruenfai/onboarding/SymptomsForm.tsx:48` · `onboarding.module.css:111` |
 | 4 | ตัวเลือกที่กดแล้วใช้ขอบหนาสีเข้ม ไม่ใช้แดง/เขียว (M2) | ❌ ใช้พื้นม่วงอ่อน `#e0d8fa` + ตัวอักษร `#4328bd` และ `border-color: transparent` (ไม่ใช่แดง/เขียว ✅ แต่ไม่ใช่ขอบหนา) | `onboarding.module.css:59,90` |
 | 5 | ProcStatus 4 แบบ (ทำได้/ให้ประเมินก่อน/ยังไม่ถึงกำหนด+วันเริ่ม/ห้าม) | ❌ มี 3 แบบ ขาด `ยังไม่ถึงกำหนด` · คำเป็น "รอการประเมิน" ไม่ใช่ "ให้ประเมินก่อน" · สี "รอประเมิน" เป็นเหลืองน้ำตาล `#8A640D` บน `#FFF3CC` (spec: ส้มอิฐ; token warning `#985018`) · "ห้าม" เป็นตัวแดงบน pill ชมพู (ไม่ใช่พื้นแดงทั้งกล่อง ✅) | `ResultsSummary.tsx:8-15` · `results.module.css:26` |
-| 6 | ทุกหน้าฝั่งแม่มีปุ่ม "ติดต่อด่วน" มุมขวาบน สูง ≥ 48px | ❌ ขนาด 56px ✅ แต่อยู่ใน bottom nav (fixed ล่าง) ไม่ใช่มุมขวาบน · เป็นไอคอนไม่มีข้อความ (`aria-label="ติดต่อฉุกเฉิน"`) · **ไม่แสดงใน `/ruenfai/onboarding` และ `/ruenfai/review`** | `ruenfai/BottomNav.tsx:14` · `ruenfai/page.module.css:29,64` |
+| 6 | ทุกหน้าฝั่งแม่มีปุ่ม "ติดต่อด่วน" มุมขวาบน สูง ≥ 48px | ❌ (e0c7796) ปุ่มติดต่อฉุกเฉิน 56px ใน bottom nav ไม่ใช่มุมขวาบน · **หลัง `0958fdd`/ADR-0015: ปุ่มนั้นเปิดแชทแล้ว** ติดต่อด่วนอยู่ที่ไอคอนโทรศัพท์หัวแชท (`aria-label="ติดต่อฉุกเฉิน"`) + route `ruenfai/emergency` → จาก tab กด 2 ครั้ง · ไม่มีใน `/ruenfai/onboarding`, `/ruenfai/review`, `/ruenfai/payment` · ยังไม่ผ่าน review | `ruenfai/BottomNav.tsx:14` · `ruenfai/chat/page.tsx` · `ruenfai/emergency/page.tsx` |
 | 7 | ปุ่มหลักกว้างเต็มจอและอยู่ล่างสุด | ✅ `width:100%` `min-height:48px` · footer `position:fixed; bottom:0` | `ruenfai/foundation.module.css:20-33` · `onboarding.module.css:30` · `results.module.css:9` |
 | 8 | หัวคำถาม 22–24px | ❌ หัวข้อช่วง (h1) 24px ✅ แต่ตัวคำถามรายข้อ (legend) 14px/500 | `onboarding.module.css:81` · `onboarding.module.css:88` |
 | 9 | ผล/กฎทุกข้อแตะแล้วเห็นเหตุผล + เลขหน้าคู่มือ (ADR-0002) | ❌ การ์ดผลเป็น `<article>` ไม่มี handler · ไม่มีข้อมูลเหตุผล/เลขหน้า | `ResultsSummary.tsx:26` |
@@ -278,7 +286,7 @@ README ใน `public/` ครอบคลุมเฉพาะฟอนต์ �
 | R-04 | M6 รวม unit/procedure/rights/date/time หน้าเดียว ไม่มีสิทธิ์บนสุด/checkbox share/errors ครบ; อบ disabled แทนจองนัดประเมิน | ผู้ใช้เลือก single-page booking + confirmation + success; `ruenfai/onboarding/BookingForm.tsx:12`, `:22` | ตัดสิน single-page vs 4 routes; review quota/referral/consent/error states โดยใช้ contract เดิม |
 | R-05 | Journal/mood ไม่มีใน screen-map หรือ API | ผู้ใช้เลือกแท็บบันทึกและการสร้างบันทึกรายวันใน prototype; `ruenfai/journal/page.tsx:1`, `ruenfai/JournalState.tsx:1` | owner ตัดสิน scope/persistence/consent; ไม่เพิ่ม API จาก UI เอง |
 | R-06 | งานเดิม `/dtam` และ `/dtam/design-system` ไม่ใช่ product ปัจจุบัน | ผู้ใช้ยืนยันให้ใช้ `/ruenfai`, `/clinic`, `/department` เป็นขอบเขต handoff | ไม่นับงานเดิมเป็นหน้าที่ส่งมอบหรือ acceptance criteria; การลบไฟล์เป็นงานแยก |
-| R-07 | เบอร์แม่/ฉุกเฉิน required แต่ API ไม่มี; emergency อยู่ล่าง/ไม่แสดง onboarding-review และไม่มี 7 อาการ/unitPhone | ผู้ใช้เลือกสองเบอร์และ bottom-nav contact sheet; `ruenfai/onboarding/MotherForm.tsx:1`, `ruenfai/BottomNav.tsx:14`, `src/design/care-demo.ts:42` | review ขอบเขตข้อมูล/consent และ emergency UX ตาม M12; อย่าขยาย schema โดยอัตโนมัติ |
+| R-07 | เบอร์แม่/ฉุกเฉิน required แต่ API ไม่มี; emergency ย้ายไปหัวแชท + route (ADR-0015) ไม่แสดง onboarding-review-payment · route มี 7 อาการ แต่ไม่ใช้ unitPhone | ผู้ใช้เลือกสองเบอร์และ bottom-nav contact sheet; `ruenfai/onboarding/MotherForm.tsx:1`, `ruenfai/BottomNav.tsx:14`, `src/design/care-demo.ts:42` | review ขอบเขตข้อมูล/consent และ emergency UX ตาม M12; อย่าขยาย schema โดยอัตโนมัติ |
 | R-08 | Staff สร้างนัดเองด้วย free text/เบอร์ แต่ API ไม่มี create route | prototype สำหรับตรวจการเพิ่มนัด/agenda; `provider/design-preview/page.tsx:592` | กำหนด role/displayCode และ contract โดย owner ก่อน production |
 | R-09 | เพิ่ม/แก้ยา/รูป และรับยาเข้าแทน lot เดิม ไม่ใช่ FEFO หลาย lot | prototype inventory; `provider/design-preview/page.tsx:581`, `src/design/care-demo.ts:65` | production ใช้ lot/receive/adjust ตาม spec; CRUD ใหม่รอ owner |
 | R-10 | รีวิวกรองแพทย์/มีชื่อแพทย์ และติดตามเรื่องเกิน contacted; ฝั่งแม่ขาด painAfter/adverse | prototype review metrics/comments; `provider/design-preview/ReviewsPanel.tsx:45`, `:57`, `ruenfai/review/page.tsx:17` | review ให้เป็น unit-level ตาม spec ไม่สร้างคะแนนรายแพทย์; ตัดสิน field/alert mapping |
@@ -320,7 +328,7 @@ README ใน `public/` ครอบคลุมเฉพาะฟอนต์ �
 | 3 · Phase 1 · M4 | results cards ตัวอย่าง 3 สถานะ | `ok/evaluate/not_yet/forbidden` ครบ, วันเริ่ม, เหตุผล+เลขหน้าคู่มือ, ข้อความ “ผลจากข้อมูลที่คุณแจ้ง · ไม่ใช่ผลการวินิจฉัย”; นัดประเมินเมื่อ evaluate | ผลมาจาก EvaluateResult ไม่ใช่คำนวณ clinical rules ใน UI; lactation เป็นบริการตัวอย่างที่ยังไม่มี enum ใน rules.md ให้ owner ตัดสิน |
 | 4 · Phase 1 · M5/M12/M0 | calendar/timeline และ emergency sheet | calendar cards/status/day/deadline ตาม API; ข้อความชวนเช็กอินเมื่อหายเกิน 3 วัน; ติดต่อด่วนทุกหน้ามุมขวาบน ≥48px, 7 อาการส่งต่อ/unitPhone/session expired; rich menu LINE หากอยู่ใน scope design | ตัดสินตำแหน่ง emergency ที่ต่างจาก prototype; LINE แสดง notification เท่านั้น ไม่ใส่ชื่อโรค/ยา/ผล |
 | 5 · Phase 2 · M6/M7 | single-page booking, confirmation, local success และ appointment cards | แถบสิทธิ์/หน่วยที่เลือก, นัดประเมินสำหรับอบ, availability states, shareSummary checkbox ไม่ pre-check; errors quota_exhausted/slot_full/referral_locked/outside_window/same_day; upcoming/history, เลื่อน/ยกเลิก | ตัดสิน single-page vs 4 routes; UI รับ quota/window/slotId จริงจาก API ไม่มีการเดาสิทธิ์หรือจำนวน slot |
-| 6 · Phase 2 · M8 | ยังไม่มี | **หน้าเช็กอินก่อนนัด** 5 คำถาม + pain และผล unchanged/awaiting_eval/referred; loading/error; entry จากนัด/notification; course check-in รายวัน | ใช้ check-in questions/outcome จาก API และ Q5; จัด banner หน่วยบริการเมื่อ awaiting_eval |
+| 6 · Phase 2 · M8 | หน้า `ruenfai/checkin` (implement หลัง `0958fdd` ยังไม่ผ่าน review: ผลเป็น `awaiting_eval` เสมอ, ไม่มีลิงก์เข้า) | **หน้าเช็กอินก่อนนัด** 5 คำถาม + pain และผล unchanged/awaiting_eval/referred; loading/error; entry จากนัด/notification; course check-in รายวัน | ใช้ check-in questions/outcome จาก API และ Q5; จัด banner หน่วยบริการเมื่อ awaiting_eval |
 | 7 · Phase 2 · P1–P5 | login visual, calendar/queue/case/treatment preview | role/unit/login errors; duration/capacity/start-days/template; awaiting_eval banner, confirm/propose; share-expired/no-access และ unlock action; treatment success/error/warnings | auth/role/access_log/referral unlock เป็นงาน dev; doctor แก้ตารางตนเอง, staff confirm/propose; ยืนยัน routing/fields ก่อนต่อ API |
 | 8 · Phase 3 · P6/P7/M9 | prescribe/stock deduction demo, inventory, medicine rounds | warnings ยา 4 กลุ่มพร้อม ref และ action เปลี่ยนยา/รับทราบและยืนยัน; stock shortage states; lot/expiry/FEFO display; M9 mode per_dose/daily + ปุ่มอาการผิดปกติและผลหยุดเตือน/แจ้งหน่วย | Q3 ยังเปิด; ไม่สร้างคำสั่งยาใหม่เอง; stock transaction/notification/permissions เป็นงาน dev |
 | 9 · Phase 4 · M10/D1/D7 | 4 ratings/comment, department overview/AI cards | painAfter + adverse/adverseText; appointment-bound review; D1 KPI “(จำลอง)”/suppressed state ทุกประเภท; D7 6 ส่วน, comment และ decision loading/error, ข้อมูลยังน้อยเมื่อ <30 | staff_alert และ aggregate-only response; ไม่ให้คะแนนแพทย์รายคน; rules draft เป็นงาน dev/owner |

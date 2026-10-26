@@ -63,7 +63,8 @@ apps/
   web/src/
     app/
       ruenfai/    page (calendar) · onboarding?screen= (consent · profile · screening · results · booking) · appointments · medicines · review · journal
-                  (ยังไม่มี design: refer · checkin/[id] · sharing) · emergency = sheet ใน bottom nav
+                  chat (ผู้ช่วย ข้อความตายตัว) · payment (สาธิต ไม่เรียกเก็บเงินจริง) · emergency (route + dialog ในหัวแชท) — ADR-0015
+                  refer · checkin (หน้าเดียว ไม่ใช่ [id]) · sharing  (implement แล้ว ยังไม่ผ่าน design review)
       clinic/     หน้าเดียว สลับ view: dashboard/appointments · case · treatment · prescribe · schedule · inventory · reviews  (+ login)
       department/ หน้าเดียว สลับ view: ภาพรวม(D1+D4) · ผลลัพธ์(D2+D6) · ความปลอดภัย · ยา · ข้อเสนอ AI  (D8 ยังไม่มี design)
     lib/api.ts    hc<AppType>

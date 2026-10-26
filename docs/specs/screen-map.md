@@ -3,7 +3,8 @@
 > ใช้คู่กับ `DESIGN-REVIEW.md` ตอนรับ design มาเทียบ · Tag: 🟢 ต้องมี · 🟡 ควรมี · ⚪ ไว้ทีหลัง · Route อยู่ใน `apps/web/src/app/`
 > route ตาม design (ADR-0014): แม่ `ruenfai/*` · หน่วยบริการ `clinic` (หน้าเดียว สลับ view ด้วย state) · กรมฯ `department` (หน้าเดียว สลับ view) · route ที่เขียนว่า "ยังไม่มี design" คือหน้าที่ทีม design ยังค้างส่ง (handoff §3)
 
-## คุณแม่ (มือถือ, LIFF) — "ติดต่อด่วน" อยู่ใน bottom nav เปิดเป็น sheet (M12) ไม่ต้องมีทุกหน้า (ADR-0014)
+## คุณแม่ (มือถือ, LIFF) — ติดต่อด่วน (M12) เข้าจากไอคอนโทรศัพท์ในหัวแชท (M14) + route `ruenfai/emergency` · bottom nav ปุ่มขวาเปิดแชท ไม่ใช่ติดต่อด่วน (ADR-0015 แทน ADR-0014 ข้อ 6)
+> สถานะหน้าที่ implement แล้ว (หลัง `0958fdd`) แต่ **ยังไม่ผ่าน `DESIGN-REVIEW.md`**: M4-R, M8, M11, M12, M14, M15 — ข้อมูลทั้งหมดเป็นของจำลอง (ADR-0012)
 | ID | หน้า | Tag | Phase | Route | API | ตาราง | กฎ / ADR |
 |---|---|---|---|---|---|---|---|
 | M0 | ห้องแชท LINE | 🟢 | 1 | (LINE) rich menu | webhook, outbox | notification_outbox | notifications.md, ADR-0006 |
@@ -14,19 +15,21 @@
 | M3-B1…B6 | ช่วง 2 คัดออก | 🟢 | 1 | 〃 | 〃 | – | rules §2 ช่วง 2 · B4 การ์ด 1323 |
 | M3-C1…C8 | ช่วง 3 ข้อห้ามรายหัตถการ | 🟢 | 1 | 〃 | `POST /me/screenings` | screenings | rules §2 ช่วง 3 · C4 ตัดออก |
 | M4 | ผลคัดกรอง | 🟢 | 1 | `ruenfai/onboarding?screen=results` | `GET /me/results/latest` | screenings | แสดง 3 สถานะ (ทำได้ / รอการประเมิน / ห้ามหลังคลอด) · `not_yet` แสดงอย่างไร = Q9 · ห้ามคำว่า "ปลอดภัย" · ไม่ต้องแตะดูเหตุผล (API ยังคืน reasons + ref) (ADR-0014) |
-| M4-R | ควรไปพบแพทย์ | 🟢 | 1 | `ruenfai/refer` (ยังไม่มี design) | `POST /me/referral/contacted` | referral_locks | ADR-0005 · ไม่มีปุ่มจอง |
+| M4-R | ควรไปพบแพทย์ | 🟢 | 1 | `ruenfai/refer` (implement แล้ว · ยังไม่ผ่าน design review · เข้าจากการ์ดนัดหมาย M7 เมื่อ `referralLocked` · ผลเช็กอิน `referred` ยังไม่เคยถูกสร้างในพรีวิว — Q26) | `POST /me/referral/contacted` | referral_locks | ADR-0005 · ไม่มีปุ่มจอง |
 | M5 | ปฏิทินของฉัน | 🟢 | 1 | `ruenfai` | `GET /me/calendar`, `GET /me` | – | rules §4 · การ์ด 4 ใบ · ไม่เช็กอินเกิน 3 วัน → ชวนเช็กอิน |
 | M6-1 | จองคิว 1/4 หน่วยบริการ | 🟢 | 2 | `ruenfai/onboarding?screen=booking` | `GET /me/units` | units | แถบสิทธิ์บนสุด · หน่วยที่เลือกไว้อยู่บนสุด |
 | M6-2 | จองคิว 2/4 หัตถการ | 🟢 | 2 | 〃 | `GET /me/units/:id/procedures` | services | Q-MULTI · อบ = นัดประเมิน |
 | M6-3 | จองคิว 3/4 วันเวลา | 🟢 | 2 | 〃 | `GET /me/units/:id/availability` | slots | window ∩ quota ∩ same-day |
 | M6-4 | จองคิว 4/4 ยืนยัน | 🟢 | 2 | 〃 (dialog ยืนยัน + success) | `POST /me/appointments` | appointments, shares | ติ๊กแชร์เอง · ครบ 5 → ปิด |
 | M7 | นัดหมายของฉัน | 🟢 | 2 | `ruenfai/appointments` | `GET/POST /me/appointments…` | appointments | state machine · คอร์สอบแยกการ์ดรายวัน |
-| M8 | เช็กอินก่อนนัด | 🟢 | 2 | `ruenfai/checkin/[id]` (ยังไม่มี design) | `POST /me/appointments/:id/checkin` | checkins, screenings | 5 ข้อ + ความปวด · ทุกวันของคอร์ส |
+| M8 | เช็กอินก่อนนัด | 🟢 | 2 | `ruenfai/checkin` (implement แล้ว · ยังไม่ผ่าน design review · หน้าเดียว เลือกนัดจาก dropdown ไม่ใช่ `[id]` · ไม่มีลิงก์เข้า — Q26) | `POST /me/appointments/:id/checkin` | checkins, screenings | 5 ข้อ + ความปวด · ทุกวันของคอร์ส · พรีวิวได้ผล `awaiting_eval` เสมอ รอ api rules engine (Q23, ADR-0001) |
 | M9 | ยาของฉัน | 🟢 | 3 | `ruenfai/medicines` | `/me/meds…` | med_doses | ชื่อยาอยู่ในเว็บเท่านั้น · ปุ่มอาการผิดปกติ |
 | M10 | รีวิวหลังรับบริการ | 🟢 | 4 | `ruenfai/review` | `POST /me/appointments/:id/review` | reviews, staff_alerts | ดาว 4 ข้อต่อนัด ไม่ถามแพทย์ในฟอร์ม · `painAfter`/adverse เป็น optional (ต้นทาง = Q10) (ADR-0014) |
-| M11 | จัดการการแชร์ข้อมูล | 🟡 | 5 | `ruenfai/sharing` (ยังไม่มี design) | `/me/shares`, `DELETE /me/consent/aggregate`, `DELETE /me` | shares, consents | ต้องมีหน้ายืนยันก่อนลบ/ถอน |
-| M12 | ติดต่อด่วน | 🟢 | 1 | sheet จาก bottom nav (ไม่มี route) | `GET /me` (`emergencyPhone`, unitPhone) | – | โทร 1669 + โทร `emergencyPhone` · รายการ 7 อาการไม่บังคับ (ADR-0014) · ใช้ได้ทันที · ไม่ต้อง auth ถ้า session หมด |
+| M11 | จัดการการแชร์ข้อมูล | 🟡 | 5 | `ruenfai/sharing` (implement แล้ว · ยังไม่ผ่าน design review · ไม่มีลิงก์เข้าจากหน้าใด — Q26) | `/me/shares`, `DELETE /me/consent/aggregate`, `DELETE /me` | shares, consents | ต้องมีหน้ายืนยันก่อนลบ/ถอน |
+| M12 | ติดต่อด่วน | 🟢 | 1 | `ruenfai/emergency` (route · เข้าจาก M4-R เท่านั้น) + dialog ในหัวแชท M14 (ADR-0015) | `GET /me` (`emergencyPhone`, unitPhone) | – | โทร 1669 + โทร `emergencyPhone` · รายการ 7 อาการไม่บังคับ (ADR-0014) · ใช้ได้ทันที · ไม่ต้อง auth ถ้า session หมด · จาก tab ต้องกด 2 ครั้ง (ปุ่มแชท → ไอคอนโทรศัพท์) · พรีวิวอ่านเบอร์ฉุกเฉินจาก localStorage 2 แหล่ง (ADR-0015) |
 | M13 | บันทึกของฉัน (journal) | 🟡 | 5 | `ruenfai/journal` | `GET/POST /me/journal` | journal_entries | อารมณ์ 5 ระดับ + ข้อความ · ADR-0006 ห้ามอยู่ในข้อความ LINE · consent/แชร์ = Q11 (ADR-0014) |
+| M14 | แชทผู้ช่วย | ⚪ | – | `ruenfai/chat` (เข้าจากปุ่มขวาสุดของ bottom nav · ซ่อน bottom nav) | – (ยังไม่มี endpoint) | – | ADR-0015 · ข้อความตายตัว ไม่มี AI/LLM · ห้ามแนะนำยา/หัตถการรายบุคคล (SPEC §7) · "สอบถามเรื่องยา" = ข้อมูลทั่วไป/ชี้ไปหาแพทย์ · AI จริงต้องอยู่ใน ADR-0009 (Q21) · หัวแชทมีทางเข้า M12 |
+| M15 | ชำระเงิน (สาธิต) | ⚪ | – | `ruenfai/payment?appointment=` (เข้าจากการ์ดนัดหมาย M7 · ซ่อน bottom nav) | – (ไม่มี endpoint/ตาราง) | – | ADR-0015 · ราคาตายตัว ไม่เรียกเก็บเงินจริง ไม่เชื่อมระบบใด · ต้องมีข้อความ "สาธิต · ยังไม่มีการเรียกเก็บเงินจริง" · ไม่กระทบ state ของนัด/quota (Q22) |
 
 ## หน่วยบริการ (คอมพิวเตอร์) — route `clinic` หน้าเดียว สลับ view (ADR-0014)
 | ID | หน้า | Tag | Phase | Route | API | Role | กฎ / ADR |
