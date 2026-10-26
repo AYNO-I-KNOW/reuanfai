@@ -918,3 +918,6 @@
     scroll-behavior: auto!important;
   }
 }
+
+/* Keep filter names readable beside the compact sidebar on phones. */
+@media(max-width:560px){.filters{grid-template-columns:minmax(0,1fr);gap:12px}}

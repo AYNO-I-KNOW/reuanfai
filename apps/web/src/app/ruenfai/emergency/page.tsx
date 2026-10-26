@@ -1,0 +1,6 @@
+'use client';
+import Link from 'next/link';
+import {motherProfile} from '@/design/care-demo';
+import s from '../care-flow.module.css';
+const symptoms=['มีไข้','มีอาการติดเชื้อ เช่น หนาวสั่น แผลบวมแดงร้อน หรือมีหนอง','น้ำคาวปลาผิดปกติ','แผลที่ช่องคลอดผิดปกติ','มีเลือดออกมากผิดปกติ','มีฝีหรือก้อนบวมแดงและเจ็บที่เต้านม','มดลูกไม่เข้าอู่ตามเวลา (แพทย์เป็นผู้ตรวจ)'];
+export default function EmergencyPage(){const profile=motherProfile.use();return <main className={s.page}><Link href="/ruenfai" className={s.back}>กลับหน้าแรก</Link><h1>ติดต่อด่วน</h1><p>ใช้ช่องทางนี้ได้ทันที แม้ session หมดอายุ</p><div className={s.actions}><a href="tel:1669" className={s.primary}>โทร 1669</a>{/^0\d{8,9}$/.test(profile.emergencyPhone)&&<a className={s.secondary} href={`tel:${profile.emergencyPhone}`}>ผู้ติดต่อฉุกเฉิน</a>}</div><section className={s.card}><h2>อาการที่ควรไปโรงพยาบาล</h2><ul className={s.list}>{symptoms.map(text=><li key={text}>{text}</li>)}</ul><p className={s.muted}>คู่มือ หน้า 79 · ข้อมูลประกอบการติดต่อ ไม่ใช่ผลการวินิจฉัย</p></section><section className={s.card}><h2>หน่วยบริการของคุณ</h2><p>ยังไม่มีเบอร์หน่วยบริการที่ยืนยันจากระบบ กรุณาใช้ช่องทางของหน่วยบริการที่คุณได้รับ</p></section></main>}
