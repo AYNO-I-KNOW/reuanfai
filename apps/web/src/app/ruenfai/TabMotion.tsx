@@ -2,7 +2,7 @@
 import {createContext,useContext,useEffect,useRef,useState,type CSSProperties,type ReactNode} from 'react';
 import {usePathname,useRouter} from 'next/navigation';
 import s from './tab-motion.module.css';
-const routes=['/ruenfai','/ruenfai/appointments','/ruenfai/medicines','/ruenfai/journal'];
+export const routes=['/ruenfai','/ruenfai/appointments','/ruenfai/medicines','/ruenfai/journal'];
 const Context=createContext<(target:string)=>void>(()=>{});
 export const useTabNavigation=()=>useContext(Context);
 type Phase='idle'|'out'|'homeOut'|'waiting'|'in'|'homeIn'|'detailIn'|'detailOut';

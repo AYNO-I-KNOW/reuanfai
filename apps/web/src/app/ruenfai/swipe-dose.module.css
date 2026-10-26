@@ -11,3 +11,4 @@
 .frame{box-shadow:0 3px 12px rgba(49,35,82,.075),0 1px 3px rgba(49,35,82,.025)}.frame:has(.dragging),.frame.exiting{box-shadow:none}
 
 .toast{min-height:44px}
+.liveRegion{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}

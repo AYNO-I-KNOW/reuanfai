@@ -6,7 +6,7 @@ import {useEffect,useRef,useState} from "react";
 import s from "./chat.module.css";
 import shared from "../page.module.css";
 import {SolidPhone} from "../SolidIcons";
-import {useTabNavigation} from "../TabMotion";
+import {routes as tabRoutes,useTabNavigation} from "../TabMotion";
 type Message = { text: string; user: boolean };
 
 export default function ChatPage() {
@@ -30,7 +30,7 @@ export default function ChatPage() {
   const [returnTo, setReturnTo] = useState("/ruenfai");
   useEffect(() => {
     const from = new URLSearchParams(window.location.search).get("from");
-    if (["/ruenfai", "/ruenfai/appointments", "/ruenfai/medicines", "/ruenfai/journal"].includes(from ?? "")) {
+    if (tabRoutes.includes(from ?? "")) {
       const timer = setTimeout(() => setReturnTo(from!), 0);
       return () => clearTimeout(timer);
     }

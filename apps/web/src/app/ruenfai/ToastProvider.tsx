@@ -8,5 +8,5 @@ export default function ToastProvider({children}:{children:ReactNode}){
  const [message,setMessage]=useState('');const timer=useRef<ReturnType<typeof setTimeout>|null>(null);
  useEffect(()=>()=>{if(timer.current)clearTimeout(timer.current)},[]);
  const show=(text:string)=>{if(timer.current)clearTimeout(timer.current);setMessage(text);timer.current=setTimeout(()=>setMessage(''),4000)};
- return <Context.Provider value={show}>{children}{message&&<div className={s.toast} role="status"><Check size={20} aria-hidden="true"/><span>{message}</span></div>}</Context.Provider>
+ return <Context.Provider value={show}>{children}<div className={s.liveRegion} role="status">{message}</div>{message&&<div className={s.toast} aria-hidden="true"><Check size={20}/><span>{message}</span></div>}</Context.Provider>
 }

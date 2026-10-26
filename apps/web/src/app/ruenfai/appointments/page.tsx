@@ -8,6 +8,7 @@ import '@/design/fonts.css';
 import s from '../page.module.css';
 import PageHeader from '../PageHeader';
 import {useCareDemo} from '@/design/care-demo';
+import {careJourney} from '@/design/care-journey';
 
 // UI examples only: readiness reasons are supplied copy, not clinical rules.
 type Appointment={id:string;service:string;art:string;status:'unavailable'|'choose'|'scheduled'|'review';paid?:boolean;description?:string;startsAt?:string};
@@ -17,7 +18,7 @@ const appointments:Appointment[]=[
   {id:'a3',service:'ทับหม้อเกลือ',art:'salt-pot',status:'unavailable',description:'รอให้แผลหายสนิท และให้ผู้ดูแลยืนยันความพร้อม'},
   {id:'a4',service:'นวดแผนไทย',art:'massage',status:'review',description:'รับบริการแล้ว แบ่งปันความรู้สึกหลังรับบริการ'},
   {id:'a5',service:'ประคบสมุนไพร',art:'compress',status:'choose',description:'พร้อมรับบริการแล้ว เลือกวันและเวลาที่สะดวก'},
-  {id:'a6',service:'ทับหม้อเกลือ',art:'salt-pot',status:'scheduled',startsAt:'2026-10-17T09:00:00+07:00'},
+  {id:'a6',service:'ทับหม้อเกลือ',art:'salt-pot',status:'scheduled',startsAt:'2026-11-07T09:00:00+07:00'},
 ];
 function countdown(startsAt:string,now:number){
   const hours=(new Date(startsAt).getTime()-now)/3600000;
@@ -35,6 +36,7 @@ export default function AppointmentsPage(){
   const payments=usePayments();
   const isPaid=(id:string)=>appointments.some(item=>item.id===id&&item.paid)||payments.some(receipt=>receipt.appointment===id);
   const care=useCareDemo();
+  const journey=careJourney.use();
   const items:Appointment[]=[...appointments,...care.bookings.flatMap(booking=>{
    const record=care.appointments.find(a=>a.id===booking.id);
    if(record?.status==='ยกเลิก')return [];
@@ -44,5 +46,5 @@ export default function AppointmentsPage(){
   useEffect(()=>{const initial=setTimeout(()=>setNow(Date.now()),0);const timer=setInterval(()=>setNow(Date.now()),60000);return()=>{clearTimeout(initial);clearInterval(timer);};},[]);
   const label=(a:Appointment)=>a.status==='choose'?'จองคิว':a.status==='unavailable'?'ยังไม่พร้อม':a.status==='review'?(isPaid(a.id)?'เขียนรีวิว':'ชำระเงิน'):now&&a.startsAt?countdown(a.startsAt,now):'กำลังตรวจเวลานัด';
   const description=(a:Appointment)=>a.startsAt?scheduledDescription(a.startsAt):a.status==='review'?(isPaid(a.id)?'ชำระเงินแล้ว แบ่งปันความรู้สึกหลังรับบริการ':'รับบริการแล้ว กรุณาชำระค่าบริการ'):a.description;
-  return <main className={`${s.canvas} ${s.referenceBackground}`}><section className={`${s.tabPage} ${s.appointmentsPage} ${s.referenceAppointments}`}><PageHeader title="นัดหมายทั้งหมด"/><ol className={s.appointmentGrid}>{items.map(a=><li key={a.id}><button type="button" className={`${s.appointmentCard} ${s.appointmentActionCard}`} disabled={a.status==='unavailable'||a.status==='scheduled'} onClick={()=>{if(a.status==='choose'){router.push('/ruenfai/onboarding?screen=booking');return;}if(a.status==='review'){router.push(isPaid(a.id)?`/ruenfai/review?appointment=${encodeURIComponent(a.id)}&service=${encodeURIComponent(a.service)}`:`/ruenfai/payment?appointment=${encodeURIComponent(a.id)}&service=${encodeURIComponent(a.service)}`);}}}><div className={s.appointmentArt}><Image src={`/images/ruenfai/services/${a.art}-base.svg`} alt="" width={80} height={80}/><Image className={s.serviceIllustration} src={`/images/ruenfai/services/${a.art}.svg`} alt="" width={80} height={80}/></div><h2>{a.service}</h2><p className={s.appointmentStatusDescription}>{description(a)}</p><span className={`${s.pill} ${a.status==='unavailable'?s.appointmentUnavailable:''}`}>{label(a)}{(a.status==='choose'||a.status==='review')&&<ChevronRight size={14} aria-hidden="true"/>}</span></button></li>)}</ol></section></main>;
+  return <main className={`${s.canvas} ${s.referenceBackground}`}><section className={`${s.tabPage} ${s.appointmentsPage} ${s.referenceAppointments}`}><PageHeader title="นัดหมายทั้งหมด"/><ol className={s.appointmentGrid}>{items.map(a=><li key={a.id}><button type="button" className={`${s.appointmentCard} ${s.appointmentActionCard}`} disabled={a.status==='unavailable'||a.status==='scheduled'} onClick={()=>{if(a.status==='choose'){router.push(journey.referralLocked?'/ruenfai/refer':'/ruenfai/onboarding?screen=booking');return;}if(a.status==='review'){router.push(isPaid(a.id)?`/ruenfai/review?appointment=${encodeURIComponent(a.id)}&service=${encodeURIComponent(a.service)}`:`/ruenfai/payment?appointment=${encodeURIComponent(a.id)}&service=${encodeURIComponent(a.service)}`);}}}><div className={s.appointmentArt}><Image src={`/images/ruenfai/services/${a.art}-base.svg`} alt="" width={80} height={80}/><Image className={s.serviceIllustration} src={`/images/ruenfai/services/${a.art}.svg`} alt="" width={80} height={80}/></div><h2>{a.service}</h2><p className={s.appointmentStatusDescription}>{description(a)}</p><span className={`${s.pill} ${a.status==='unavailable'?s.appointmentUnavailable:''}`}>{label(a)}{(a.status==='choose'||a.status==='review')&&<ChevronRight size={14} aria-hidden="true"/>}</span></button></li>)}</ol></section></main>;
 }
