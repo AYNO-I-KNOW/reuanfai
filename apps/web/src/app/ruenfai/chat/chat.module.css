@@ -266,10 +266,6 @@
 .ubot-header,.ubot-composer{flex-shrink:0}.ubot-input-wrap{height:48px;padding:4px 6px 4px 8px}.ubot-input-wrap input{height:40px;font-size:16px}.ubot-send{width:40px;height:40px;min-height:40px}.chat .ubot-send{color:#fff}.ubot-profile{min-width:0}.ubot-identity h1{white-space:nowrap}.ubot-quick-prompts{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}.ubot-quick-prompts button{flex-shrink:0;min-height:44px}.ubot-composer{padding-left:16px;padding-right:16px}.ubot-header{padding-left:16px;padding-right:16px}.ubot-messages{scrollbar-width:thin}.ubot-user{animation:ubot-message-in 220ms ease-out both}@media(max-height:500px){.ubot-header{padding-top:8px;padding-bottom:8px}.ubot-composer{padding-top:8px}.ubot-messages{padding-top:12px;padding-bottom:12px}.notice{margin-bottom:0}}@media(prefers-reduced-motion:reduce){.chat,.ubot-user{animation:none}}
 
 .ubot-verified{width:18px;height:18px;flex-shrink:0}
-
-.chat .emergencyTrigger{margin-left:auto;display:grid;place-items:center;flex:0 0 48px;width:48px;height:48px;padding:0;border:0;border-radius:50%;background:#6549f7;color:#fff;cursor:pointer;transition:background-color 160ms ease,transform 160ms ease}.chat .emergencyTrigger:hover{background:#5438db}.emergencyTrigger:active{transform:scale(.95)}@media(prefers-reduced-motion:reduce){.chat .emergencyTrigger{transition:none}}
-
-.chat .emergencyPrimary{color:#fff}
 /* Suggested topics sit directly on the chat canvas. */
 .ubot-composer{background:transparent}.ubot-quick-prompts button{background:transparent}.ubot-quick-prompts button:not(:disabled):hover{background:rgba(255,255,255,.35)}
 /* White topic chips float subtly above the lavender chat canvas. */
@@ -277,3 +273,5 @@
 .ubot-input-wrap{background:#fff;box-shadow:0 2px 8px rgba(54,35,100,.06)}
 
 .chat{height:var(--chat-height,100dvh)}.ubot-header{padding-top:calc(16px + env(safe-area-inset-top,0px))}.ubot-composer{padding-bottom:calc(16px + env(safe-area-inset-bottom,0px))}
+
+.chat.chat.chat input:focus{outline:none;box-shadow:none;border-color:transparent}.ubot-input-wrap{transition:box-shadow 180ms ease}.ubot-input-wrap:focus-within{box-shadow:inset 0 0 0 2px #6549f7}.ubot-quick-prompts{scroll-snap-type:x proximity;overscroll-behavior-x:contain;touch-action:pan-x pan-y}.ubot-quick-prompts button{scroll-snap-align:start;transition:background-color 180ms ease,color 180ms ease}.ubot-quick-prompts button:active{background:#eee7ff}@media(prefers-reduced-motion:reduce){.ubot-input-wrap,.ubot-quick-prompts button{transition:none}}

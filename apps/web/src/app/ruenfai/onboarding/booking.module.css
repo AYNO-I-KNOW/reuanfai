@@ -25,3 +25,17 @@
 
 /* Confirmation actions match the main app CTA radius and type. */
 .modalActions button{border-radius:20px;font:500 16px/24px 'ReuanFai UI',sans-serif}
+
+/* Confirmation surfaces use the same bottom-sheet placement. */
+.confirmDialog{position:fixed;inset:auto 0 0;margin:0 auto;width:100%;max-width:600px;height:fit-content;max-height:calc(100dvh - 24px - env(safe-area-inset-top,0px));border:0;border-radius:32px 32px 0 0;padding:0;overflow-y:auto;box-shadow:0 -8px 32px rgb(43 31 77 / 12%);animation:confirmSheetEnter 420ms cubic-bezier(.2,.8,.2,1) both;}
+@keyframes confirmSheetEnter{from{translate:0 100%}to{translate:0 0}}
+@media(prefers-reduced-motion:reduce){.confirmDialog{animation:none}}
+.confirmContent{padding-bottom:calc(24px + env(safe-area-inset-bottom,0px));}
+
+/* Keep native dialogs in the top layer until their closing slide finishes. */
+@supports (transition-behavior:allow-discrete){
+.confirmDialog{animation:none;translate:0 100%;transition:translate 300ms cubic-bezier(.4,0,.8,.2),display 300ms allow-discrete,overlay 300ms allow-discrete;}
+.confirmDialog[open]{translate:0 0;transition:translate 420ms cubic-bezier(.2,.8,.2,1),display 420ms allow-discrete,overlay 420ms allow-discrete;}
+@starting-style{.confirmDialog[open]{translate:0 100%;}}
+}
+@media(prefers-reduced-motion:reduce){.confirmDialog,.confirmDialog[open]{transition:none;translate:none;}}

@@ -1,32 +1,21 @@
 "use client";
-import {ChevronLeft, ArrowUp, X} from "lucide-react";
+import {ChevronLeft, ArrowUp} from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import {useEffect,useRef,useState} from "react";
 import s from "./chat.module.css";
-import shared from "../page.module.css";
-import {SolidPhone} from "../SolidIcons";
+import EmergencyAction from "../EmergencyAction";
 import {routes as tabRoutes,useTabNavigation} from "../TabMotion";
+import {useChatTopics} from "../chat-topics";
 type Message = { text: string; user: boolean };
 
 export default function ChatPage() {
   const navigate=useTabNavigation();
+  const topics=useChatTopics();
+  const topicDrag=useRef<{x:number;left:number}|null>(null),topicMoved=useRef(false);
+  const [selectedTopic,setSelectedTopic]=useState("");
   const chatRoot=useRef<HTMLElement>(null);
   useEffect(()=>{const viewport=window.visualViewport;if(!viewport)return;const resize=()=>{if(viewport.scale===1)chatRoot.current?.style.setProperty('--chat-height',`${viewport.height}px`)};resize();viewport.addEventListener('resize',resize);return()=>viewport.removeEventListener('resize',resize)},[]);
-  const emergencyDialog = useRef<HTMLDialogElement>(null);
-  const [emergencyClosing, setEmergencyClosing] = useState(false);
-  const [emergencyPhone, setEmergencyPhone] = useState("");
-  const openEmergency = () => {
-    let phone = "";
-    try { phone = localStorage.getItem("ruenfai-emergency-phone") ?? ""; } catch {}
-    setEmergencyPhone(/^0\d{8,9}$/.test(phone) ? phone : "");
-    setEmergencyClosing(false);
-    emergencyDialog.current?.showModal();
-  };
-  const closeEmergency = () => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) { emergencyDialog.current?.close(); return; }
-    setEmergencyClosing(true);
-  };
   const [returnTo, setReturnTo] = useState("/ruenfai");
   useEffect(() => {
     const from = new URLSearchParams(window.location.search).get("from");
@@ -39,6 +28,7 @@ export default function ChatPage() {
     { text: "สวัสดีค่ะ วันนี้คุณแม่อยากปรึกษาเรื่องอะไร เล่าให้ฟังได้เลยนะคะ", user: false },
   ]);
   const [draft, setDraft] = useState("");
+  useEffect(()=>{const question=new URLSearchParams(window.location.search).get("question");if(question){const timer=setTimeout(()=>(setDraft(question.slice(0,500)),setSelectedTopic(question.slice(0,500))),0);return()=>clearTimeout(timer)}},[]);
   const [replying, setReplying] = useState(false);
   const replyTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const following = useRef(true);
@@ -95,7 +85,7 @@ export default function ChatPage() {
             <Image className={s["ubot-verified"]} src="/images/ruenfai/chat-verified.svg" width={18} height={18} alt=""/>
           </div>
         </div>
-        <button type="button" className={s.emergencyTrigger} aria-label="ติดต่อฉุกเฉิน" aria-haspopup="dialog" onClick={openEmergency}><SolidPhone size={22} aria-hidden="true"/></button>
+        <EmergencyAction/>
       </header>
       <div
         className={s["ubot-messages"]}
@@ -133,15 +123,20 @@ export default function ChatPage() {
       <footer className={s["ubot-composer"]}>
         <div
           className={s["ubot-quick-prompts"]}
+          onPointerDown={event=>{topicMoved.current=false;if(event.pointerType==='mouse')topicDrag.current={x:event.clientX,left:event.currentTarget.scrollLeft}}}
+          onPointerMove={event=>{const start=topicDrag.current;if(!start)return;const distance=event.clientX-start.x;if(Math.abs(distance)>6){topicMoved.current=true;event.currentTarget.setPointerCapture(event.pointerId);event.currentTarget.scrollLeft=start.left-distance}}}
+          onPointerUp={()=>{topicDrag.current=null}}
+          onPointerCancel={()=>{topicDrag.current=null}}
+          onClickCapture={event=>{if(topicMoved.current){event.preventDefault();event.stopPropagation();topicMoved.current=false}}}
           role="group"
           aria-label={'หัวข้อสนทนา'}
         >
-          {["การดูแลหลังคลอด", "สอบถามเรื่องยา", "เตรียมตัวไปตามนัด"].map((question) => (
+          {[...new Set([selectedTopic,...topics].filter(Boolean))].map((question) => (
             <button
               key={question}
               type="button"
               disabled={replying}
-              onClick={() => send(question, true)}
+              onClick={() => {setDraft(question);input.current?.focus();}}
             >
               {question}
             </button>
@@ -157,6 +152,7 @@ export default function ChatPage() {
             <input
               ref={input}
               name="message"
+              data-focus-within="true"
               aria-label={'ข้อความ'}
               placeholder={'พิมพ์ข้อความของคุณแม่…'}
               value={draft}
@@ -175,6 +171,6 @@ export default function ChatPage() {
           </div>
         </form>
       </footer>
-    </div><dialog ref={emergencyDialog} className={shared.medicineDialog} aria-labelledby="chat-emergency-title" onCancel={event=>{event.preventDefault();closeEmergency();}} onClick={event=>{if(event.target===event.currentTarget)closeEmergency();}}><section className={`${shared.medicineSheet} ${shared.emergencySheet} ${emergencyClosing?shared.medicineClosing:""}`} onAnimationEnd={event=>{if(event.target===event.currentTarget&&emergencyClosing){emergencyDialog.current?.close();setEmergencyClosing(false);}}}><header className={shared.medicineSheetHeader}><h2 id="chat-emergency-title">ติดต่อฉุกเฉิน</h2><button type="button" onClick={closeEmergency} aria-label="ปิดช่องทางฉุกเฉิน"><X size={20}/></button></header><div className={shared.medicineSheetBody}><p className={shared.emergencyCopy}>หากต้องการความช่วยเหลือทางการแพทย์ฉุกเฉิน</p><a className={`${shared.emergencyCall} ${s.emergencyPrimary}`} href="tel:1669"><SolidPhone size={20}/>โทร 1669</a>{emergencyPhone&&<a className={shared.emergencyContactCall} href={`tel:${emergencyPhone}`}><SolidPhone size={18}/>โทรหาผู้ติดต่อฉุกเฉิน</a>}</div></section></dialog></main>
+    </div></main>
   );
 }

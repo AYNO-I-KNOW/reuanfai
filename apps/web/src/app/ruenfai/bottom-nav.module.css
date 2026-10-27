@@ -1,0 +1,31 @@
+/* Timly 394:1191 layout, adapted to Ruenfai's destinations and selected capsule. */
+.nav{position:fixed;z-index:20;bottom:0;left:50%;translate:-50% 0;width:100%;max-width:600px;box-sizing:border-box;padding:12px max(24px,env(safe-area-inset-right,0px)) calc(16px + env(safe-area-inset-bottom,0px)) max(24px,env(safe-area-inset-left,0px));background:#fff;border:1px solid #e8e8ed;pointer-events:none}
+.items{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:24px;align-items:center;min-height:48px}
+.item{--glyph-surface:#edeff5;position:relative;isolation:isolate;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-width:0;min-height:48px;padding:0;border:0;background:transparent;color:#78787d;text-decoration:none;font:400 12px/18px 'ReuanFai UI',sans-serif;white-space:nowrap;pointer-events:auto;transition:color 180ms ease}
+.item[aria-current=page]{--glyph-surface:#6549f7;--glyph-accent:#4930be}
+.icon,.glyph{position:relative;isolation:isolate;display:flex;align-items:center;justify-content:center;width:24px;height:24px;flex-shrink:0;color:#78787d}
+.icon:before{content:'';position:absolute;z-index:-1;top:-4px;left:50%;translate:-50% 0;width:62px;height:32px;border-radius:35px;background:#e9e0ff;opacity:0;transition:opacity 180ms ease;pointer-events:none}
+.item[aria-current=page] .icon{color:#fff}.item[aria-current=page] .icon:before{opacity:1}
+.paper{position:absolute;left:1.25px;top:1.25px}.paperSelected{display:none}.item[aria-current=page] .paperDefault{display:none}.item[aria-current=page] .paperSelected{display:block}
+.action{display:grid;place-items:center;justify-self:center;width:48px;height:48px;padding:0;border:0;border-radius:50%;background:transparent;cursor:pointer;pointer-events:auto;transition:transform 120ms ease}.action:active{transform:scale(.97)}.action img{display:block}
+.item:focus-visible,.action:focus-visible,.chat:focus-visible{outline:2px solid #6549f7;outline-offset:4px;border-radius:20px}.action:focus-visible,.chat:focus-visible{border-radius:50%}
+.chat{position:absolute;right:max(16px,env(safe-area-inset-right,0px));bottom:calc(100% + 16px);display:grid;place-items:center;width:52px;height:52px;border:1px solid rgba(255,255,255,.85);border-radius:50%;background:#6549f7;color:white;box-shadow:0 4px 16px rgba(101,73,247,.2);pointer-events:auto;transition:transform 120ms ease,background 160ms ease}.chat:hover{background:#5438db}.chat:active{transform:scale(.97)}
+@media(max-width:350px){.nav{padding-left:16px;padding-right:16px}.items{gap:12px}.icon:before{width:56px}}
+@media(prefers-reduced-motion:reduce){.item,.icon:before,.action,.chat{transition:none}}
+
+.items{--nav-gap:24px;position:relative;isolation:isolate}.items:before{content:'';position:absolute;z-index:-1;top:1px;width:62px;height:32px;background:#e9e0ff;border-radius:35px;transition:left 320ms cubic-bezier(.22,1,.36,1);left:calc((100% - 4 * var(--nav-gap))/10 - 31px + var(--selected-slot,0) * ((100% - 4 * var(--nav-gap))/5 + var(--nav-gap)));pointer-events:none}.icon:before{display:none}@media(max-width:350px){.items{--nav-gap:12px}.items:before{width:56px;left:calc((100% - 4 * var(--nav-gap))/10 - 28px + var(--selected-slot,0) * ((100% - 4 * var(--nav-gap))/5 + var(--nav-gap)))}}@media(prefers-reduced-motion:reduce){.items:before{transition:none}}
+
+.nav{border:0;border-top:1px solid rgb(226 222 236 / 65%);box-shadow:0 -6px 24px rgb(48 33 78 / 6%)}
+.invitation{position:absolute;right:16px;bottom:calc(100% + 80px);width:min(260px,calc(100vw - 40px));box-sizing:border-box;display:flex;align-items:flex-start;background:#fff;border-radius:22px 22px 8px 22px;box-shadow:0 6px 24px rgb(60 35 108 / 14%);pointer-events:auto;animation:inviteIn 280ms cubic-bezier(.22,1,.36,1) both}.inviteQuestion{border:0;background:transparent;text-align:left;padding:16px 0 16px 16px;font:400 14px/22px 'ReuanFai UI',sans-serif;flex:1;min-width:0;cursor:pointer}.inviteQuestion span{display:block;color:#8870c8;font-size:12px;margin-bottom:4px}.inviteQuestion strong{font-weight:500;color:#413653}.inviteClose{width:32px;height:32px;flex:0 0 32px;display:grid;place-items:center;border:0;background:transparent;color:#8b819d;margin:6px 4px 0 0;cursor:pointer}@keyframes inviteIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}@media(prefers-reduced-motion:reduce){.invitation{animation:none}}
+
+/* Short, rotating prompt beside the chat action. */
+.invitation{right:76px;bottom:calc(100% + 24px);width:auto;max-width:min(244px,calc(100vw - 112px));border-radius:20px 20px 6px 20px;min-height:44px;align-items:center}.inviteQuestion{padding:11px 14px;color:#5438bd;font-size:13px;line-height:22px;min-height:44px}.typingDots{display:flex!important;gap:4px;align-items:center;margin:0!important;height:22px}.typingDots i{width:4px;height:4px;background:#8870c8;border-radius:50%;animation:typingDot 900ms ease-in-out infinite}.typingDots i:nth-child(2){animation-delay:120ms}.typingDots i:nth-child(3){animation-delay:240ms}@keyframes typingDot{50%{opacity:.35;transform:translateY(-3px)}}@media(prefers-reduced-motion:reduce){.typingDots i{animation:none}}
+
+.items:before{height:38px;top:-2px}
+
+.item{gap:10px;min-height:52px}.items{min-height:52px}.items:before{top:-6px;height:36px}
+
+.invitation{transform-origin:100% 75%;transition:opacity 240ms ease,transform 320ms cubic-bezier(.22,1,.36,1);will-change:transform,opacity;min-width:152px}.invitation[data-phase=exit],.invitation[data-phase=hidden]{opacity:0;transform:translateX(10px) scale(.94);pointer-events:none}.invitation[data-phase=hidden]{visibility:hidden}.invitation[data-phase=typing],.invitation[data-phase=hold]{opacity:1;transform:none}.inviteQuestion{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.invitation[data-phase=typing]{min-width:152px}@media(prefers-reduced-motion:reduce){.invitation{transition:none}}
+
+/* Release the entrance keyframe so exit transitions can take over. */
+.invitation{animation-fill-mode:backwards}

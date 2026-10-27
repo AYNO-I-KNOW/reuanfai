@@ -62,8 +62,8 @@ flowchart LR
 apps/
   web/src/
     app/
-      ruenfai/    page (calendar) · onboarding?screen= (consent · profile · screening · results · booking) · appointments · medicines · review · journal
-                  chat (ผู้ช่วย ข้อความตายตัว) · payment (สาธิต ไม่เรียกเก็บเงินจริง) · emergency (route + dialog ในหัวแชท) — ADR-0015
+      ruenfai/    page (calendar) · onboarding?screen= (consent · profile · screening · results · booking) · appointments · medicines · review · journal · profile (ดู/แก้ข้อมูลคุณแม่ — ADR-0016)
+                  chat (ผู้ช่วย ข้อความตายตัว) · payment (สาธิต ไม่เรียกเก็บเงินจริง) — ADR-0015 · emergency (route + sheet ในหัวหน้าแรกและหัวแชท — ADR-0016)
                   refer · checkin (หน้าเดียว ไม่ใช่ [id]) · sharing  (implement แล้ว ยังไม่ผ่าน design review)
       clinic/     หน้าเดียว สลับ view: dashboard/appointments · case · treatment · prescribe · schedule · inventory · reviews  (+ login)
       department/ หน้าเดียว สลับ view: ภาพรวม(D1+D4) · ผลลัพธ์(D2+D6) · ความปลอดภัย · ยา · ข้อเสนอ AI  (D8 ยังไม่มี design)

@@ -1,0 +1,48 @@
+.trigger{display:flex;align-items:center;justify-content:center;gap:6px;flex-shrink:0;width:48px;height:48px;margin-left:auto;padding:0;border:0;border-radius:50%;background:#6549f7;color:#fff;cursor:pointer;transition:background-color 160ms ease,transform 120ms ease;font:500 12px/18px 'ReuanFai UI',sans-serif}.trigger:hover{background:#5438db}.trigger:active{transform:scale(.97)}.trigger:focus-visible{outline:2px solid #6549f7;outline-offset:3px}.trigger.subtle{width:auto;min-width:48px;padding:0 12px;border-radius:99px;background:#8870c8;color:#fff}.trigger.subtle:hover{background:#7960bc}
+.sheet{max-height:calc(100dvh - 16px - env(safe-area-inset-top,0px))}.callArea{padding:0 20px 16px;flex-shrink:0;border-bottom:1px solid #efedf5}.call{min-height:56px;display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:10px 16px;border-radius:20px;background:#a34554;color:#fff;text-decoration:none;font-size:21px;font-weight:600;line-height:28px}.call small{font-size:13px;font-weight:400;margin-left:8px}.callArea>p{font-size:12px;line-height:19px;color:#625d70;text-align:center;margin:8px 0 0}.contact{display:flex;align-items:center;justify-content:center;gap:8px;min-height:44px;margin-top:10px;border-radius:16px;background:#f1edfc;color:#5438bd;text-decoration:none;font-weight:500}.body{padding-top:20px;min-height:0}.patient{border:0;padding:0;margin:0 0 24px}.patient legend,.field,.location label{font-size:14px;line-height:22px;font-weight:500}.patient>div{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}.patient button{display:flex;align-items:center;justify-content:center;gap:4px;background:#f5f3fa;border:0;border-radius:16px;min-height:44px;color:#625d70;font:inherit}.patient button[aria-pressed=true]{background:#e9e0ff;color:#5438bd;font-weight:500}.sectionHeading{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:space-between}.sectionHeading h3,.readout h3{font-size:14px;line-height:22px;font-weight:600;margin:0}.sectionHeading h3{display:flex;gap:6px;align-items:center}.sectionHeading button{border:0;background:#f1edfc;color:#5438bd;min-height:44px;border-radius:14px;padding:8px 12px;font:500 12px/20px 'ReuanFai UI',sans-serif;cursor:pointer}.sectionHeading button:disabled{opacity:.6;cursor:wait}.location{margin-bottom:20px}.location label{display:block;margin-top:12px}.body textarea{display:block;width:100%;min-height:80px;margin-top:8px;padding:12px 14px;resize:vertical;background:#f7f6fb;border:1px solid transparent;border-radius:16px;color:#29243d;font:400 14px/23px 'ReuanFai UI',sans-serif}.body textarea:focus-visible{border-color:#6549f7;outline:2px solid #e9e0ff}.field{display:block;margin-bottom:20px}.privacy,.readout>small{display:block;font-size:11px;line-height:18px;color:#716b83;margin-top:8px}.coordinates{font-size:14px;line-height:22px;margin:8px 0}.coordinates small{display:block;color:#716b83;font-size:12px}.error{font-size:13px;line-height:21px;color:#8f3d4a;margin:8px 0}.readout{padding:16px;border-radius:20px;background:#f5f2fc}.readout p{white-space:pre-wrap;font-size:14px;line-height:24px;margin:10px 0 16px;overflow-wrap:anywhere}.actions{display:flex;gap:8px;flex-wrap:wrap}.actions button{display:flex;align-items:center;justify-content:center;gap:6px;min-height:44px;border:0;padding:10px 12px;border-radius:14px;background:transparent;color:#5438bd;font:500 12px/20px 'ReuanFai UI',sans-serif;cursor:pointer}.notice{font-size:13px;line-height:21px;color:#256748;margin:8px 0;min-height:0}.notice:empty{display:none}.warning{margin-top:20px;font-size:13px;line-height:23px;color:#625d70}.warning summary{cursor:pointer;padding:10px 0;color:#4d465f}.warning p{margin:8px 0}.warning a{color:#5438bd}.footer{font-size:12px;line-height:20px;color:#716b83;margin:20px 0 0}.sheet a:focus-visible,.sheet button:focus-visible,.warning summary:focus-visible{outline:2px solid #6549f7;outline-offset:3px}@media(max-height:600px){.callArea{padding-bottom:10px}.call small{display:none}.body{padding-top:14px}}@media(max-width:350px){.trigger.subtle{padding:0 10px;gap:4px}.call small{display:none}}@media(prefers-reduced-motion:reduce){.trigger{transition:none}}
+
+.sheet .call,.sheet .call:visited{color:#fff}.sheet .contact,.sheet .contact:visited{color:#5438bd}.sheet .warning a{color:#5438bd}
+
+/* The emergency panel starts as a sheet, then expands as its information scrolls. */
+.sheet{height:72dvh;min-height:min(440px,72dvh);max-height:100dvh;transition:height 420ms cubic-bezier(.2,.8,.2,1),border-radius 420ms cubic-bezier(.2,.8,.2,1);}
+.sheet.expanded{height:100dvh;border-radius:0;}
+.header{padding-top:32px;min-height:84px;}
+.expanded .header{padding-top:calc(32px + env(safe-area-inset-top,0px));min-height:calc(84px + env(safe-area-inset-top,0px));}
+.header .handle{position:absolute;inset:0 64px auto;display:grid;place-items:center;width:auto;height:28px;border-radius:0;background:transparent;}
+.handle span{width:36px;height:4px;border-radius:99px;background:#cbc6d6;}
+@media(prefers-reduced-motion:reduce){.sheet{transition:none;}}
+
+.trigger.trigger{color:#fff;}
+
+.sheet .map{display:inline-flex;align-items:center;min-height:44px;margin-top:4px;color:#5438bd;font-size:13px;text-decoration:underline;text-underline-offset:3px;}
+
+/* Matched telephone controls, with color carrying their distinct purpose. */
+.callArea{border:0;}
+.callArea .call,.callArea .contact{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:52px;padding:12px 16px;border:0;border-radius:20px;font:500 16px/24px 'ReuanFai UI',sans-serif;}
+.callArea .contact{margin-top:10px;}
+.sheet .handle:focus-visible{outline:none;}
+.handle:focus-visible span{outline:2px solid #6549f7;outline-offset:4px;}
+
+/* Persistent thumb-reachable telephone actions beneath the scrolling details. */
+.callArea{padding:14px 20px calc(16px + env(safe-area-inset-bottom,0px));background:#fff;}
+.patient .segment{position:relative;isolation:isolate;display:grid;grid-template-columns:1fr 1fr;gap:0;padding:4px;border-radius:20px;background:#f5f3fa;touch-action:pan-y;}
+.segmentThumb{position:absolute;z-index:-1;top:4px;bottom:4px;left:4px;width:calc(50% - 4px);border-radius:16px;background:#e9e0ff;transform:translateX(0);transition:transform 280ms cubic-bezier(.2,.8,.2,1);pointer-events:none;}
+.segment[data-patient=baby] .segmentThumb{transform:translateX(100%);}
+.patient .segment button{background:transparent;font-weight:500;transition:color 180ms ease;cursor:pointer;}
+.patient .segment button[aria-checked=true]{color:#5438bd;}
+@media(prefers-reduced-motion:reduce){.segmentThumb,.patient .segment button{transition:none;}}
+
+/* Two distinct patient choices keep the emergency form visually lighter. */
+.patient .segment{padding:0;gap:8px;background:transparent;}
+.segmentThumb{display:none;}
+.patient .segment button{background:#f5f3fa;border-radius:18px;transition:background-color 220ms ease,color 220ms ease;}
+.patient .segment button[aria-checked=true]{background:#e9e0ff;color:#5438bd;}
+@media(prefers-reduced-motion:reduce){.patient .segment button{transition:none;}}
+
+/* Compact, equal patient controls with a clear selected surface. */
+.patient{margin-bottom:20px;}
+.patient legend{font:500 14px/22px 'ReuanFai UI',sans-serif;color:#29243d;}
+.patient .segment{gap:10px;margin-top:10px;}
+.patient .segment button{min-height:48px;padding:12px 16px;border-radius:16px;background:#f7f6fb;color:#716b83;font:500 16px/24px 'ReuanFai UI',sans-serif;transition:background-color 220ms ease,color 220ms ease,box-shadow 220ms ease;}
+.patient .segment button[aria-checked=true]{background:#e9e0ff;color:#5438bd;box-shadow:0 3px 8px rgb(101 73 247 / 9%);}
+@media(prefers-reduced-motion:reduce){.patient .segment button{transition:none;}}

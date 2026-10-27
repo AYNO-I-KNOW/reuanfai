@@ -26,14 +26,10 @@
 
 .date.today{border-radius:50%;background:#e9e0ff;color:#5438bd}.monthGrid button.today{background:#e9e0ff;color:#5438bd}.monthGrid button[aria-pressed=true]{background:#b7a2ff;color:#000}
 
-.canvas{--nav-bottom-space:max(16px,env(safe-area-inset-bottom,0px));--nav-height:calc(65px + var(--nav-bottom-space))}.home{height:calc(100% - var(--nav-height))}.bottomNav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:600px;z-index:20;background:#fff;border-top:1px solid #e8e8ed;padding:16px 16px var(--nav-bottom-space);height:var(--nav-height)}.navItems{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));align-items:center;gap:12px}.navItem,.navAdd{border:0;background:transparent;padding:0;color:#78787d;font:10px/14px 'ReuanFai UI',sans-serif;display:flex;flex-direction:column;align-items:center;gap:6px;min-width:0;height:48px;justify-content:center;opacity:1}.navItem:disabled,.navAdd:disabled{cursor:default}.navIcon{position:relative;display:flex;justify-content:center;align-items:center;width:46.2px;height:24px}.navActive{color:#776dfd}.navActive .navIcon:before{content:'';position:absolute;left:50%;top:-2px;transform:translateX(-50%);width:64px;height:32px;background:#f1ecff;border-radius:999px}.navIcon>img{position:relative}.navIcon .homeDetail{position:absolute;top:14.25px;left:calc(50% - 1.44375px)}.navIcon .chatLine1{position:absolute;left:calc(50% - 5px);top:13.5px}.navIcon .chatLine2{position:absolute;left:calc(50% - 5px);top:9.5px}.navItem:focus-visible{outline:2px solid #6549f7;border-radius:14px;outline-offset:2px}@media(min-width:375px){.bottomNav{padding-left:24px;padding-right:24px}.navItems{gap:24px}}@media(max-width:350px){.navActive .navIcon:before{width:56px}}
-
-.navAdd>img{max-width:none;flex-shrink:0}
+.canvas{--nav-bottom-space:max(16px,env(safe-area-inset-bottom,0px));--nav-height:calc(65px + var(--nav-bottom-space))}.home{height:calc(100% - var(--nav-height))}
 
 /* Shared Thai type hierarchy: regular body, medium labels, semibold titles. */
-.greeting h1{font-size:18px;line-height:27px;font-weight:600}.greeting p{font-size:14px;line-height:21px;font-weight:400;color:#625d70}.sheetHeader h2,.monthHeading h2{font-size:18px;line-height:27px;font-weight:600}.description h3{font-size:16px;line-height:24px;font-weight:600}.description p{font-size:14px;line-height:21px;font-weight:400;color:#625d70}.pill{}.navItem{font-size:11px;line-height:16px;font-weight:500;gap:4px}.weekLabel{font-weight:400}.monthGrid button{font-weight:500}.empty{font-size:14px;line-height:21px;font-weight:400}
-
-.navItem{text-decoration:none}.tabPage{max-width:600px;margin:auto;height:calc(100% - var(--nav-height));overflow:auto;padding:calc(24px + env(safe-area-inset-top,0px)) 24px}.tabPage h1{font-size:22px;line-height:33px;font-weight:600;margin:0 0 4px}.tabPage p{font-size:14px;line-height:21px;color:#625d70;margin:0}.tabPlaceholder{margin-top:24px;padding:32px 20px;background:#fff;border:1px solid #e8e8ed;border-radius:24px;text-align:center;color:#625d70}
+.greeting h1{font-size:18px;line-height:27px;font-weight:600}.greeting p{font-size:14px;line-height:21px;font-weight:400;color:#625d70}.sheetHeader h2,.monthHeading h2{font-size:18px;line-height:27px;font-weight:600}.description h3{font-size:16px;line-height:24px;font-weight:600}.description p{font-size:14px;line-height:21px;font-weight:400;color:#625d70}.pill{}.weekLabel{font-weight:400}.monthGrid button{font-weight:500}.empty{font-size:14px;line-height:21px;font-weight:400}.tabPage{max-width:600px;margin:auto;height:calc(100% - var(--nav-height));overflow:auto;padding:calc(24px + env(safe-area-inset-top,0px)) 24px}.tabPage h1{font-size:22px;line-height:33px;font-weight:600;margin:0 0 4px}.tabPage p{font-size:14px;line-height:21px;color:#625d70;margin:0}.tabPlaceholder{margin-top:24px;padding:32px 20px;background:#fff;border:1px solid #e8e8ed;border-radius:24px;text-align:center;color:#625d70}
 
 .appointmentsPage{padding-left:16px;padding-right:16px;padding-bottom:24px}.appointmentHeading{display:flex;align-items:center;justify-content:space-between;gap:8px}.appointmentHeading h1{font-size:20px;line-height:30px}.appointmentHeading>span{font-size:10px;line-height:15px;color:#8b819d;white-space:nowrap}.appointmentGrid{list-style:none;padding:0;margin:20px 0 0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.appointmentGrid li{min-width:0}.appointmentCard{height:100%;background:#fff;border-radius:24px;padding:12px;display:flex;flex-direction:column;align-items:flex-start;gap:8px}.appointmentArt{position:relative;width:64px;height:64px}.appointmentArt svg{position:absolute;left:17px;top:17px;color:#5438bd}.appointmentCard h2{font-size:16px;line-height:24px;font-weight:600;margin:0}.appointmentCard .appointmentUnit{font-size:12px;line-height:18px}.appointmentDate{display:flex;align-items:center;gap:4px;font-size:12px;line-height:18px;color:#625d70;margin-top:4px}.appointmentDate svg{flex-shrink:0}.appointmentCard .appointmentTime{font-size:12px;line-height:18px;color:#625d70}.appointmentCard .pill{margin-top:auto}.appointmentCard p{margin:0}@media(min-width:450px){.appointmentsPage{padding-left:24px;padding-right:24px}.appointmentCard{padding:16px}}
 
@@ -45,23 +41,14 @@
 
 .medicineSummary{display:flex;align-items:center;gap:16px;width:100%;min-height:112px;padding:16px;border:1px solid #e8e8ed;border-radius:24px;background:#fff;text-align:left;color:inherit;font:inherit;cursor:pointer}.medicineSummary>.appointmentArt{flex:0 0 64px}.medicineSummary strong{font-size:16px;line-height:24px;font-weight:600}.medicineSummary>svg{flex-shrink:0;color:#8b819d}.medicineSummary:focus-visible{outline:2px solid #6549f7;outline-offset:2px}.medicineSummary:active{background:#faf8ff}.medicineDialog{position:fixed;inset:auto 0 0;margin:0 auto;padding:0;width:100%;max-width:600px;max-height:85dvh;border:0;background:transparent;color:#000;overflow:visible;font:14px/1.5 'ReuanFai UI',sans-serif}.medicineDialog::backdrop{background:rgba(30,20,50,.3)}.medicineSheet{background:#fff;border-radius:28px 28px 0 0;max-height:85dvh;display:flex;flex-direction:column;overflow:hidden;animation:medicineOpen 250ms cubic-bezier(.22,1,.36,1)}.medicineSheetHeader{position:relative;display:flex;align-items:center;justify-content:space-between;padding:32px 20px 12px;touch-action:none;cursor:grab}.medicineSheetHeader h2{font-size:18px;line-height:27px;font-weight:600;margin:0}.medicineSheetHeader button{width:40px;height:40px;display:grid;place-items:center;background:#f6f4fd;border:0;border-radius:16px;color:#000;cursor:pointer}.medicineSheetBody{overflow:auto;padding:8px 20px max(24px,env(safe-area-inset-bottom,0px));overscroll-behavior:contain}.medicineDetailTitle{display:flex;align-items:center;gap:16px;margin-bottom:16px}.medicineDetailTitle h3{font-size:18px;line-height:27px;font-weight:600;margin:0}.medicineSheetBody .medicineInstructions{gap:0;margin-top:20px}.medicineSheetBody .medicineInstructions>div{padding:16px 0;border-top:1px solid #e8e8ed}.medicineSheetBody .medicineInstructions dt,.medicineSheetBody .medicineInstructions dd{font-size:14px;line-height:21px}@keyframes medicineOpen{from{translate:0 100%}to{translate:0 0}}@media(prefers-reduced-motion:reduce){.medicineSheet{animation:none}}@media(max-width:350px){.medicineSummary{gap:12px;padding:12px}}
 
-/* Floating frosted navigation, adapted from the user's supplied reference. */
-.bottomNav{display:flex;align-items:center;gap:12px;background:transparent;border:0;padding:8px 16px var(--nav-bottom-space);height:var(--nav-height);pointer-events:none}.navItems{flex:1;min-width:0;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;height:56px;padding:4px;background:rgba(255,255,255,.78);border:1px solid rgba(255,255,255,.85);border-radius:32px;backdrop-filter:blur(20px) saturate(1.4);-webkit-backdrop-filter:blur(20px) saturate(1.4);box-shadow:0 4px 20px rgba(47,36,86,.08);pointer-events:auto}.navItem{height:48px;color:#625d70;gap:2px}.navIcon{width:100%;height:24px}.navActive{color:#6549f7}.navActive .navIcon:before{width:48px;height:30px;top:-3px;background:rgba(231,222,255,.85)}.navAdd{width:56px;height:56px;flex:0 0 56px;pointer-events:auto;background:rgba(119,109,253,.13);border:1px solid rgba(255,255,255,.7);border-radius:50%;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);box-shadow:0 4px 16px rgba(47,36,86,.08)}.navAdd>img{width:48px;height:48px}.home{height:100%}.scrollArea{padding-bottom:calc(var(--nav-height) + 24px)}.tabPage{height:100%;padding-bottom:calc(var(--nav-height) + 24px)}@media(min-width:375px){.bottomNav{padding-left:16px;padding-right:16px}.navItems{gap:0}}@media(max-width:350px){.bottomNav{gap:8px;padding-left:12px;padding-right:12px}.navActive .navIcon:before{width:44px}}@supports not (backdrop-filter:blur(1px)){.navItems{background:rgba(255,255,255,.96)}}
+.home{height:100%}.scrollArea{padding-bottom:calc(var(--nav-height) + 24px)}.tabPage{height:100%;padding-bottom:calc(var(--nav-height) + 24px)}
 
 /* Figma 3:924: inset rounded panel and centered heading with pale round close. */
 .medicineDialog{inset:0;width:100%;max-width:none;height:100dvh;max-height:none;margin:0;padding:12px 12px max(16px,env(safe-area-inset-bottom,0px));overflow:hidden}.medicineDialog[open]{display:flex;align-items:flex-end;justify-content:center}.medicineDialog::backdrop{background:rgba(30,20,50,.32)}.medicineSheet{width:100%;max-width:576px;max-height:calc(100dvh - 40px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));border-radius:40px;box-shadow:0 -4px 16px rgba(193,199,251,.25);transition:transform 220ms cubic-bezier(.22,1,.36,1);animation:medicineOpen 420ms cubic-bezier(.2,.8,.2,1) both}.medicineSheetHeader{flex-shrink:0;min-height:76px;padding:24px 64px 16px;justify-content:center}.medicineSheetHeader h2{text-align:center}.medicineSheetHeader button{position:absolute;right:18px;top:18px;border-radius:50%;background:#f6f4fd;color:#78787d}.medicineSheetHeader .handle{top:10px;width:32px;background:#d9d6e1}.medicineSheetBody{padding:8px 20px 24px}.medicineClosing{animation:medicineExit 300ms cubic-bezier(.4,0,.8,.2) forwards;pointer-events:none}.medicineDragging{transition:none;animation:none}@keyframes medicineOpen{from{translate:0 calc(100% + 32px)}to{translate:0 0}}@keyframes medicineExit{from{translate:0 0}to{translate:0 calc(100% + 32px)}}@media(prefers-reduced-motion:reduce){.medicineSheet{animation:none;transition:none}}
 
-.navItems{position:relative;isolation:isolate}.navSelection{position:absolute;z-index:-1;top:4px;bottom:4px;left:4px;width:calc((100% - 8px)/4);border-radius:26px;background:rgba(226,214,255,.8);box-shadow:inset 0 1px 1px rgba(255,255,255,.8);transform:translateX(calc(var(--active-tab,0)*100%));transition:transform 340ms cubic-bezier(.22,1,.36,1)}.navActive .navIcon:before{display:none}.navItem{position:relative;transition:color 200ms ease,transform 160ms ease}.navItem:active{transform:scale(.94)}.navIcon svg{transition:transform 240ms ease}.navActive .navIcon svg{transform:translateY(-1px)}.emergencyButton{display:grid;place-items:center;width:56px;height:56px;flex:0 0 56px;border:1px solid rgba(255,255,255,.85);border-radius:50%;background:rgba(255,240,240,.88);color:#b33b4c;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);pointer-events:auto;box-shadow:0 4px 16px rgba(47,36,86,.08);cursor:pointer;transition:transform 160ms ease}.emergencyButton:active{transform:scale(.94)}.emergencyButton:focus-visible{outline:2px solid #b33b4c;outline-offset:3px}.emergencyCopy{margin:0 0 20px;color:#625d70}.emergencyCall{display:flex;align-items:center;justify-content:center;gap:8px;border-radius:24px;min-height:52px;background:#b33b4c;color:#fff;font-size:18px;font-weight:600;text-decoration:none}.emergencyNote{text-align:center;font-size:12px;color:#625d70;margin:12px 0 0}@media(prefers-reduced-motion:reduce){.navSelection,.navItem,.navIcon svg,.emergencyButton{transition:none}}@media(prefers-reduced-transparency:reduce),(prefers-contrast:more){.navItems{background:#fff;backdrop-filter:none}.navSelection{background:#e9e0ff}.emergencyButton{background:#fff0f0;backdrop-filter:none}}
-
 .medicineIdentityHeader{justify-content:flex-start;gap:16px;padding:24px 68px 16px 20px;min-height:104px}.medicineIdentityHeader .appointmentArt{flex:0 0 64px}.medicineIdentityHeader h2{text-align:left;font-size:18px;line-height:27px;overflow-wrap:anywhere}.medicineIdentityHeader button{top:18px}.medicineIdentityHeader+.medicineSheetBody{padding-top:0}
 
-.solidHome{position:relative;width:20px;height:20px;display:block}.solidHomeDetail{position:absolute;left:8.556px;top:12.25px}.navIcon>svg,.navIcon>.solidHome{transition:transform 240ms ease}.navActive .navIcon>svg,.navActive .solidHome{animation:navIconPop 320ms cubic-bezier(.22,1,.36,1)}.navItem:not(.navActive) .solidHome{filter:grayscale(1);opacity:.7}.emergencyButton{background:#c44255;color:#fff;display:flex;flex-direction:column;justify-content:center;gap:2px;border-color:rgba(255,255,255,.8);box-shadow:0 4px 16px rgba(160,35,55,.16);backdrop-filter:none}.emergencyButton>span{font:500 9px/12px 'ReuanFai UI',sans-serif}.emergencyButton:hover{background:#af3446}@keyframes navIconPop{0%{transform:scale(.85)}55%{transform:scale(1.12) translateY(-1px)}100%{transform:scale(1)}}@media(prefers-reduced-motion:reduce){.navActive .navIcon>svg,.navActive .solidHome{animation:none}}
-
 .medicineIdentityText{min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:8px}.medicineIdentityText .pill{}.medicineIdentityHeader+.medicineSheetBody .medicineInstructions{margin-top:0}.medicineIdentityHeader+.medicineSheetBody .medicineInstructions>div:first-child{border-top:0;padding-top:8px}
-
-.navItem{color:#78787d}.navItem:not(.navActive) .navIcon>svg{color:#a2a2a7}.navItem:not(.navActive) .solidHome{filter:grayscale(1);opacity:.7}.navActive{color:#6549f7}.emergencyButton{gap:0}
-
-.emergencyButton{background:#6549f7;box-shadow:0 4px 16px rgba(101,73,247,.2)}.emergencyButton:hover{background:#5438db}.emergencyButton:focus-visible{outline-color:#6549f7}
 
 /* Figma 3:582: original top artwork, 64px art and 167 × 189 cards at 375px. */
 .referenceBackground{background-color:#f4f2fc;background-image:linear-gradient(165deg,#d4c9fa 0%,#e9e3fc 19%,#f1eefb 42%,#f4f2fc 100%);background-repeat:no-repeat;background-position:center top;background-size:100% 100dvh}
@@ -71,7 +58,7 @@
 .referenceAppointments .appointmentCard h2{font-size:18px;line-height:25px;font-weight:600}
 .referenceAppointments .appointmentWhen{font-size:16px;line-height:22px;font-weight:400;color:#000}
 .referenceAppointments .appointmentCard .pill{}
-.canvas:has(.home){--nav-backdrop:#f7f5fd}.bottomNav:before{content:'';position:absolute;inset:auto 0 0;height:calc(var(--nav-height) + 24px);background:linear-gradient(180deg,transparent,var(--nav-backdrop,#f4f2fc) 24px);pointer-events:none;z-index:-1}
+.canvas:has(.home){--nav-backdrop:#f7f5fd}
 
 .journalTask{text-decoration:none}.journalTask:focus-visible{outline:2px solid #6549f7;outline-offset:3px}
 
@@ -125,10 +112,7 @@
 
 .appointmentCard:disabled{opacity:1;cursor:default}.appointmentCard:disabled:active{transform:none}.appointmentCard .appointmentUnavailable{background:#f0eef4;color:#625d70}
 
-.emergencySheet{min-height:0}.emergencySheet .medicineSheetHeader{min-height:72px;padding-top:24px;padding-bottom:12px}.emergencySheet .medicineSheetBody{padding-top:4px;padding-bottom:24px}.emergencySheet .emergencyCopy{margin:0 0 20px;line-height:24px}.emergencyContactCall{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:52px;margin-top:12px;padding:12px 16px;border:1px solid #e4dfef;border-radius:24px;background:#fff;color:#27232f;text-decoration:none;font:500 14px/22px 'ReuanFai UI',sans-serif}.emergencyContactCall:focus-visible{outline:2px solid #6549f7;outline-offset:3px}.emergencyContactCall:disabled{color:#8b8796;background:#f7f6fa}.emergencyMissing span{display:block;text-align:center;margin-top:8px;color:#625d70;font-size:13px;line-height:20px}
-
 /* Emergency actions share one readable label scale; red remains the emergency role. */
-.emergencyCall,.emergencyContactCall{font:500 16px/24px 'ReuanFai UI',sans-serif;padding:12px 16px}
 
 /* Home: tight top inset, swipeable week strip. */
 .canvas{--home-top:12px}.home{padding-top:calc(var(--home-top) + env(safe-area-inset-top,0px))}.months{top:calc(var(--home-top) + 61px + env(safe-area-inset-top,0px))}@media(max-height:700px){.months{top:calc(var(--home-top) + 54px + env(safe-area-inset-top,0px))}}
@@ -154,21 +138,8 @@
 /* Home cards use elevation rather than a visible outline. */
 .home .activity{border-color:transparent;box-shadow:0 3px 12px rgba(49,35,82,.075),0 1px 3px rgba(49,35,82,.025)}
 
-/* Floating frosted-glass navigation with a restrained reflective edge. */
-.bottomNav .navItems{background:linear-gradient(135deg,rgba(255,255,255,.56),rgba(255,255,255,.28));border:1px solid rgba(255,255,255,.72);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);box-shadow:0 8px 24px rgba(47,36,86,.09),inset 0 1px 0 rgba(255,255,255,.85),inset 0 -1px 0 rgba(255,255,255,.25)}
-.bottomNav:before{opacity:.3}
-@supports not (backdrop-filter:blur(1px)){.bottomNav .navItems{background:rgba(255,255,255,.92)}}
-
-@media(prefers-reduced-transparency:reduce),(prefers-contrast:more){.bottomNav .navItems{background:#fff;-webkit-backdrop-filter:none;backdrop-filter:none}}
-
-/* Keep the floating navigation compact on wide screens. */
-.bottomNav{max-width:520px}
-
-.bottomNav{max-width:600px;justify-content:space-between}.bottomNav .navItems{flex:1 1 0;max-width:420px}
-
 /* Base breathing room is present even on devices reporting zero safe insets. */
 .canvas{--home-top:24px;--nav-bottom-space:calc(16px + env(safe-area-inset-bottom,0px))}
-.bottomNav{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 .tabPage{padding-top:calc(24px + env(safe-area-inset-top,0px))}.appointmentGrid{margin-top:24px}
 .referenceAppointments .appointmentCard{gap:10px}.referenceAppointments .appointmentCard h2{line-height:27px}.appointmentCard .appointmentStatusDescription{line-height:23px;min-height:46px}
 .medicineDialog{padding-bottom:calc(16px + env(safe-area-inset-bottom,0px))}
@@ -183,3 +154,11 @@
 /* Short displays retain access to every date above the sheet. */
 .months{bottom:auto;overflow-y:auto;overflow-x:hidden;scrollbar-width:none}
 .month{touch-action:pan-y}
+
+/* Mother-app bottom sheets: one edge-attached surface across all entry points. */
+.medicineDialog{padding:0;}
+.medicineSheet{max-width:600px;border-radius:32px 32px 0 0;max-height:calc(100dvh - 24px - env(safe-area-inset-top,0px));box-shadow:0 -8px 32px rgb(43 31 77 / 12%);}
+.medicineSheetBody{padding-bottom:calc(24px + env(safe-area-inset-bottom,0px));}
+
+/* The viewport wrapper must never scroll to follow autofocus during entry. */
+.medicineDialog{overflow:clip;}
