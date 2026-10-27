@@ -24,3 +24,5 @@
 @media(prefers-reduced-motion:reduce){.detailIn,.detailOut{animation:none}}
 
 .chatBackground{background:#ece8fa}
+
+.detailBackground{background:#fff}

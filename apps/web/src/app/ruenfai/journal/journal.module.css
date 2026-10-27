@@ -49,3 +49,7 @@
 .symptoms button:focus-visible{outline:2px solid #6549f7;outline-offset:2px}
 .recordSymptoms{font-size:14px;line-height:24px;color:#6549f7;margin:8px 0 16px}
 @media(prefers-reduced-motion:reduce){.symptoms button,.form .moods button{transition:none}}
+
+.editButton{composes:primary from '../foundation.module.css';width:100%;margin-top:24px}
+
+.readerSheet .detail{padding-bottom:16px;min-height:0;flex:1;overflow-y:auto}.readerFooter{flex-shrink:0;padding:12px 20px calc(20px + env(safe-area-inset-bottom,0px));background:#fff}.readerFooter .editButton{margin-top:0}

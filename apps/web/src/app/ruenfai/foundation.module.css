@@ -46,3 +46,8 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* Shared field focus: recolor the existing edge, never add an outer ring. */
+.scope.scope.scope :is(input:not([type=radio]):not([type=checkbox]):not([type=hidden]):not([data-focus-within]),textarea,select,[role=combobox]){transition:border-color var(--mother-motion-fast) ease,box-shadow var(--mother-motion-fast) ease,background-color var(--mother-motion-fast) ease;caret-color:var(--mother-accent)}
+.scope.scope.scope :is(input:not([type=radio]):not([type=checkbox]):not([type=hidden]):not([data-focus-within]),textarea,select,[role=combobox]):focus{outline:none;outline-offset:0;border-color:var(--mother-accent);box-shadow:inset 0 0 0 1px var(--mother-accent)}
+@media(prefers-reduced-motion:reduce){.scope.scope.scope :is(input,textarea,select,[role=combobox]){transition:none}}

@@ -6,10 +6,14 @@ import {useEffect,useRef,useState} from "react";
 import s from "./chat.module.css";
 import EmergencyAction from "../EmergencyAction";
 import {useTabNavigation} from "../TabMotion";
+import {useChatTopics} from "../chat-topics";
 type Message = { text: string; user: boolean };
 
 export default function ChatPage() {
   const navigate=useTabNavigation();
+  const topics=useChatTopics();
+  const topicDrag=useRef<{x:number;left:number}|null>(null),topicMoved=useRef(false);
+  const [selectedTopic,setSelectedTopic]=useState("");
   const chatRoot=useRef<HTMLElement>(null);
   useEffect(()=>{const viewport=window.visualViewport;if(!viewport)return;const resize=()=>{if(viewport.scale===1)chatRoot.current?.style.setProperty('--chat-height',`${viewport.height}px`)};resize();viewport.addEventListener('resize',resize);return()=>viewport.removeEventListener('resize',resize)},[]);
   const [returnTo, setReturnTo] = useState("/ruenfai");
@@ -24,6 +28,7 @@ export default function ChatPage() {
     { text: "สวัสดีค่ะ วันนี้คุณแม่อยากปรึกษาเรื่องอะไร เล่าให้ฟังได้เลยนะคะ", user: false },
   ]);
   const [draft, setDraft] = useState("");
+  useEffect(()=>{const question=new URLSearchParams(window.location.search).get("question");if(question){const timer=setTimeout(()=>(setDraft(question.slice(0,500)),setSelectedTopic(question.slice(0,500))),0);return()=>clearTimeout(timer)}},[]);
   const [replying, setReplying] = useState(false);
   const replyTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const following = useRef(true);
@@ -118,15 +123,20 @@ export default function ChatPage() {
       <footer className={s["ubot-composer"]}>
         <div
           className={s["ubot-quick-prompts"]}
+          onPointerDown={event=>{topicMoved.current=false;if(event.pointerType==='mouse')topicDrag.current={x:event.clientX,left:event.currentTarget.scrollLeft}}}
+          onPointerMove={event=>{const start=topicDrag.current;if(!start)return;const distance=event.clientX-start.x;if(Math.abs(distance)>6){topicMoved.current=true;event.currentTarget.setPointerCapture(event.pointerId);event.currentTarget.scrollLeft=start.left-distance}}}
+          onPointerUp={()=>{topicDrag.current=null}}
+          onPointerCancel={()=>{topicDrag.current=null}}
+          onClickCapture={event=>{if(topicMoved.current){event.preventDefault();event.stopPropagation();topicMoved.current=false}}}
           role="group"
           aria-label={'หัวข้อสนทนา'}
         >
-          {["การดูแลหลังคลอด", "สอบถามเรื่องยา", "เตรียมตัวไปตามนัด"].map((question) => (
+          {[...new Set([selectedTopic,...topics].filter(Boolean))].map((question) => (
             <button
               key={question}
               type="button"
               disabled={replying}
-              onClick={() => send(question, true)}
+              onClick={() => {setDraft(question);input.current?.focus();}}
             >
               {question}
             </button>
@@ -142,6 +152,7 @@ export default function ChatPage() {
             <input
               ref={input}
               name="message"
+              data-focus-within="true"
               aria-label={'ข้อความ'}
               placeholder={'พิมพ์ข้อความของคุณแม่…'}
               value={draft}

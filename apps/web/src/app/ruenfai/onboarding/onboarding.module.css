@@ -192,3 +192,5 @@
 @supports (transition-behavior:allow-discrete){.dateDialog .calendarSheet{animation:none;}}
 
 .dateDialog{overflow:clip;}
+/* Stable tactile selection feedback across all questionnaire stages. */
+.choice{transition:background-color 180ms ease,color 180ms ease,border-color 180ms ease,transform 120ms ease}.choice:active{transform:scale(.98)}.choiceMark{transition:opacity 160ms ease,transform 180ms ease}.choiceSelected .choiceMark{transform:scale(1)}.choice:has(input:focus-visible){outline:2px solid #6549f7;outline-offset:3px}@media(prefers-reduced-motion:reduce){.choice,.choiceMark{transition:none}.choice:active{transform:none}}
