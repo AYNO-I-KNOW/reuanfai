@@ -41,7 +41,7 @@ jobs:
             fi
           done
       - name: Install Vercel CLI
-        run: npm install --global vercel@59.13.1
+        run: npm install --global vercel@65.4.0
       - name: Pull production configuration
         run: vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
       - name: Build production artifacts
