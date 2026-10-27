@@ -174,3 +174,21 @@
 .loadingDots i{animation:processingDotSteps 1200ms step-end infinite;opacity:0}.loadingDots i:nth-child(2){animation-name:processingDotStepsTwo;animation-delay:0ms}.loadingDots i:nth-child(3){animation-name:processingDotStepsThree;animation-delay:0ms}@keyframes processingDotSteps{0%,100%{opacity:1}}@keyframes processingDotStepsTwo{0%{opacity:0}33.333%{opacity:1}}@keyframes processingDotStepsThree{0%{opacity:0}66.666%{opacity:1}}@media(prefers-reduced-motion:reduce){.loadingDots i{animation:none;opacity:1}}
 
 .contactField{display:grid;gap:8px;font-size:14px;font-weight:500}.contactField input{width:100%;min-width:0;min-height:48px;box-sizing:border-box;border:1px solid #e4dfef;border-radius:16px;padding:12px 16px;background:#fff;color:#27232f;font:400 14px/22px 'ReuanFai UI',sans-serif}.contactField input:focus-visible{outline:2px solid #6549f7;outline-offset:3px}
+
+/* Shared edge-attached date sheet. */
+.dateDialog{padding:0;}
+.calendarSheet{max-width:600px;border-radius:32px 32px 0 0;max-height:calc(100dvh - 24px - env(safe-area-inset-top,0px));padding-bottom:calc(24px + env(safe-area-inset-bottom,0px));box-shadow:0 -8px 32px rgb(43 31 77 / 12%);animation:calendarSheetOpen 420ms cubic-bezier(.2,.8,.2,1) both;}
+@keyframes calendarSheetOpen{from{translate:0 100%}to{translate:0 0}}
+@media(prefers-reduced-motion:reduce){.calendarSheet{animation:none}}
+
+/* Keep native dialogs in the top layer until their closing slide finishes. */
+@supports (transition-behavior:allow-discrete){
+.dateDialog{animation:none;translate:0 100%;transition:translate 300ms cubic-bezier(.4,0,.8,.2),display 300ms allow-discrete,overlay 300ms allow-discrete;}
+.dateDialog[open]{translate:0 0;transition:translate 420ms cubic-bezier(.2,.8,.2,1),display 420ms allow-discrete,overlay 420ms allow-discrete;}
+@starting-style{.dateDialog[open]{translate:0 100%;}}
+}
+@media(prefers-reduced-motion:reduce){.dateDialog,.dateDialog[open]{transition:none;translate:none;}}
+
+@supports (transition-behavior:allow-discrete){.dateDialog .calendarSheet{animation:none;}}
+
+.dateDialog{overflow:clip;}

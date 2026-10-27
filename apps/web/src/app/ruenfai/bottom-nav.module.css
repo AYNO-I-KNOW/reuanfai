@@ -1,0 +1,14 @@
+/* Timly 394:1191 layout, adapted to Ruenfai's destinations and selected capsule. */
+.nav{position:fixed;z-index:20;bottom:0;left:50%;translate:-50% 0;width:100%;max-width:600px;box-sizing:border-box;padding:12px max(24px,env(safe-area-inset-right,0px)) calc(16px + env(safe-area-inset-bottom,0px)) max(24px,env(safe-area-inset-left,0px));background:#fff;border:1px solid #e8e8ed;pointer-events:none}
+.items{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:24px;align-items:center;min-height:48px}
+.item{--glyph-surface:#edeff5;position:relative;isolation:isolate;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-width:0;min-height:48px;padding:0;border:0;background:transparent;color:#78787d;text-decoration:none;font:400 12px/18px 'ReuanFai UI',sans-serif;white-space:nowrap;pointer-events:auto;transition:color 180ms ease}
+.item[aria-current=page]{--glyph-surface:#6549f7;--glyph-accent:#4930be}
+.icon,.glyph{position:relative;isolation:isolate;display:flex;align-items:center;justify-content:center;width:24px;height:24px;flex-shrink:0;color:#78787d}
+.icon:before{content:'';position:absolute;z-index:-1;top:-4px;left:50%;translate:-50% 0;width:62px;height:32px;border-radius:35px;background:#e9e0ff;opacity:0;transition:opacity 180ms ease;pointer-events:none}
+.item[aria-current=page] .icon{color:#fff}.item[aria-current=page] .icon:before{opacity:1}
+.paper{position:absolute;left:1.25px;top:1.25px}.paperSelected{display:none}.item[aria-current=page] .paperDefault{display:none}.item[aria-current=page] .paperSelected{display:block}
+.action{display:grid;place-items:center;justify-self:center;width:48px;height:48px;padding:0;border:0;border-radius:50%;background:transparent;cursor:pointer;pointer-events:auto;transition:transform 120ms ease}.action:active{transform:scale(.97)}.action img{display:block}
+.item:focus-visible,.action:focus-visible,.chat:focus-visible{outline:2px solid #6549f7;outline-offset:4px;border-radius:20px}.action:focus-visible,.chat:focus-visible{border-radius:50%}
+.chat{position:absolute;right:max(16px,env(safe-area-inset-right,0px));bottom:calc(100% + 16px);display:grid;place-items:center;width:52px;height:52px;border:1px solid rgba(255,255,255,.85);border-radius:50%;background:#6549f7;color:white;box-shadow:0 4px 16px rgba(101,73,247,.2);pointer-events:auto;transition:transform 120ms ease,background 160ms ease}.chat:hover{background:#5438db}.chat:active{transform:scale(.97)}
+@media(max-width:350px){.nav{padding-left:16px;padding-right:16px}.items{gap:12px}.icon:before{width:56px}}
+@media(prefers-reduced-motion:reduce){.item,.icon:before,.action,.chat{transition:none}}

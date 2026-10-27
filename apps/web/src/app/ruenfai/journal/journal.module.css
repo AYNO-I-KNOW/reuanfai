@@ -34,3 +34,18 @@
 .form textarea{box-sizing:border-box;background:#fff;border:1px solid #e4dfef;border-radius:20px;padding:16px;color:#27232f;font:400 14px/23px 'ReuanFai UI',sans-serif;min-height:112px;resize:vertical}.form textarea::placeholder{color:#8b8796;opacity:1}.form textarea:focus-visible{border-color:#6549f7;outline:none;box-shadow:inset 0 0 0 1px #6549f7}.illustration{width:64px;height:64px;object-fit:contain}
 
 .moodVector{display:block;width:100%;height:auto;aspect-ratio:1}.illustration{object-fit:contain}
+
+/* Daily journal doubles as the short daily check-in. */
+.form .moods button{border-radius:16px;gap:4px;opacity:.7;filter:none;transform:none;transition:opacity 180ms ease}
+.form .moods button[aria-pressed=true]{transform:none;opacity:1}
+.form .moods button[aria-pressed=true] .moodVector{background:#f1ebff;border-radius:50%}
+.moodLabel{font:400 11px/18px 'ReuanFai UI',sans-serif;color:#625d70;white-space:nowrap}
+.form .moods button[aria-pressed=true] .moodLabel{color:#6549f7;font-weight:600}
+.optional{color:#8b8796;font-size:12px;font-weight:400}
+.form>label{display:block}.form>label textarea{display:block;width:100%;margin-top:8px}
+.symptoms{display:flex;flex-wrap:wrap;gap:8px}
+.symptoms button{border:0;border-radius:999px;padding:9px 14px;min-height:40px;background:#f5f2fa;color:#625d70;font:400 13px/20px 'ReuanFai UI',sans-serif;cursor:pointer;transition:background 180ms ease,color 180ms ease}
+.symptoms button[aria-pressed=true]{background:#e8dfff;color:#5438c5}
+.symptoms button:focus-visible{outline:2px solid #6549f7;outline-offset:2px}
+.recordSymptoms{font-size:14px;line-height:24px;color:#6549f7;margin:8px 0 16px}
+@media(prefers-reduced-motion:reduce){.symptoms button,.form .moods button{transition:none}}

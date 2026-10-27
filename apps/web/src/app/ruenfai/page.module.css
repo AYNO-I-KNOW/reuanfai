@@ -183,3 +183,11 @@
 /* Short displays retain access to every date above the sheet. */
 .months{bottom:auto;overflow-y:auto;overflow-x:hidden;scrollbar-width:none}
 .month{touch-action:pan-y}
+
+/* Mother-app bottom sheets: one edge-attached surface across all entry points. */
+.medicineDialog{padding:0;}
+.medicineSheet{max-width:600px;border-radius:32px 32px 0 0;max-height:calc(100dvh - 24px - env(safe-area-inset-top,0px));box-shadow:0 -8px 32px rgb(43 31 77 / 12%);}
+.medicineSheetBody{padding-bottom:calc(24px + env(safe-area-inset-bottom,0px));}
+
+/* The viewport wrapper must never scroll to follow autofocus during entry. */
+.medicineDialog{overflow:clip;}

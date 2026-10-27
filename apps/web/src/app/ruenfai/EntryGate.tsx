@@ -13,7 +13,7 @@ export default function EntryGate({children}:{children:ReactNode}){
   const minimum=new Promise<void>(resolve=>{timer=setTimeout(resolve,3000)});
   const assets=Promise.allSettled([
    document.fonts.ready,
-   ...Array.from(content.current?.querySelectorAll('img')??[]).map(image=>image.decode()),
+   ...Array.from(content.current?.querySelectorAll('img')??[]).filter(image=>{const rect=image.getBoundingClientRect();return rect.width>0&&rect.height>0&&rect.bottom>0&&rect.top<window.innerHeight}).map(image=>{image.loading='eager';return image.decode()}),
   ]);
   Promise.all([minimum,assets]).then(()=>{if(!cancelled)setPhase(window.matchMedia('(prefers-reduced-motion: reduce)').matches?'done':'leaving')});
   return()=>{cancelled=true;clearTimeout(timer)};
