@@ -1,17 +1,17 @@
 import { z } from 'zod'
 
-// ingest + embeddings (local) need only these
+// ingest + eval + question embeddings need only these (embeddings use the same OpenAI-compatible endpoint/key as chat)
 const baseSchema = z.object({
   SUPABASE_URL: z.url(),
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
-  // kb_chunks.embedding is vector(768) — changing the model means re-embedding everything
-  AI_EMBEDDING_MODEL: z.string().min(1).default('Xenova/multilingual-e5-base'),
-})
-
-// POST /kb/ask additionally calls an OpenAI-compatible chat model (Gemini now, TokenMe later)
-const askSchema = baseSchema.extend({
   AI_API_KEY: z.string().min(1),
   AI_BASE_URL: z.url(),
+  // kb_chunks.embedding is vector(768) — changing the model means re-embedding everything
+  AI_EMBEDDING_MODEL: z.string().min(1).default('gemini-embedding-2'),
+})
+
+// POST /kb/ask additionally calls the chat model (Gemini now, TokenMe later)
+const askSchema = baseSchema.extend({
   AI_MODEL: z.string().min(1),
   // same base URL/key; used once per attempt when AI_MODEL answers HTTP 429
   AI_FALLBACK_MODEL: z.string().min(1).optional(),

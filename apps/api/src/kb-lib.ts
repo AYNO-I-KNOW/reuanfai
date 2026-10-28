@@ -165,10 +165,10 @@ export function expandContext(
 }
 
 // relevance gate: hybrid rows carry dense similarity (1 - cosine), so the best one says how close the KB is to the question.
-// Calibrated on e5 + eval.json: in-KB questions top-1 min 0.836; off-topic below the bar: nuclear bomb 0.808, bitcoin 0.797,
-// football 0.748, python code 0.811, car engine 0.800. Some off-topic still pass (tom yum 0.850, weather 0.838) —
-// the LLM NOT_FOUND answer + citation filter catch those. Re-calibrate if the embedding model or KB changes.
-export const MIN_SIMILARITY = 0.82
+// Calibrated on gemini-embedding-2 + eval.json: in-KB questions top-1 min 0.698 (Thai question vs English WHO chunk; suggestions.json min 0.722);
+// 16 off-topic probes 0.58-0.672 (highest: covid vaccine 0.672, football 0.661, gold price 0.641). Gate sits between with ~0.01 on each side;
+// a borderline off-topic question that passes is caught by the LLM NOT_FOUND answer + citation filter. Re-calibrate if the embedding model or KB changes.
+export const MIN_SIMILARITY = 0.68
 
 export const bestSimilarity = (rows: { similarity: number }[]): number =>
   rows.reduce((best, r) => Math.max(best, r.similarity), -Infinity)
