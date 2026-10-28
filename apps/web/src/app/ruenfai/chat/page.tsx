@@ -15,6 +15,19 @@ export default function ChatPage() {
   const topicDrag=useRef<{x:number;left:number}|null>(null),topicMoved=useRef(false);
   const [selectedTopic,setSelectedTopic]=useState("");
   const chatRoot=useRef<HTMLElement>(null);
+  useEffect(() => {
+    // Text inputs match :focus-visible even after a tap; track Tab explicitly.
+    const keyboard = (event: KeyboardEvent) => {
+      if (event.key === "Tab") chatRoot.current?.setAttribute("data-keyboard-focus", "true");
+    };
+    const pointer = () => chatRoot.current?.removeAttribute("data-keyboard-focus");
+    document.addEventListener("keydown", keyboard, true);
+    document.addEventListener("pointerdown", pointer, true);
+    return () => {
+      document.removeEventListener("keydown", keyboard, true);
+      document.removeEventListener("pointerdown", pointer, true);
+    };
+  }, []);
   useEffect(()=>{const viewport=window.visualViewport;if(!viewport)return;const resize=()=>{if(viewport.scale===1)chatRoot.current?.style.setProperty('--chat-height',`${viewport.height}px`)};resize();viewport.addEventListener('resize',resize);return()=>viewport.removeEventListener('resize',resize)},[]);
   const [returnTo, setReturnTo] = useState("/ruenfai");
   useEffect(() => {

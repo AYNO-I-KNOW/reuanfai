@@ -194,3 +194,17 @@
 .dateDialog{overflow:clip;}
 /* Stable tactile selection feedback across all questionnaire stages. */
 .choice{transition:background-color 180ms ease,color 180ms ease,border-color 180ms ease,transform 120ms ease}.choice:active{transform:scale(.98)}.choiceMark{transition:opacity 160ms ease,transform 180ms ease}.choiceSelected .choiceMark{transform:scale(1)}.choice:has(input:focus-visible){outline:2px solid #6549f7;outline-offset:3px}@media(prefers-reduced-motion:reduce){.choice,.choiceMark{transition:none}.choice:active{transform:none}}
+
+/* Keep text fields and shared sheet triggers on the same questionnaire rhythm. */
+.stageForm .wizardFields>.contactField{display:grid;gap:8px;line-height:22px}
+.stageForm .dateField,.stageForm .dropdownField{gap:8px;line-height:22px}
+.stageForm .wizardFields>.contactField input,
+.stageForm .dateField>button,
+.stageForm .dropdownField>button{box-sizing:border-box;width:100%;height:var(--rf-field-height);min-height:var(--rf-field-height);padding:var(--rf-field-padding-y) var(--rf-field-padding-x);border-radius:var(--rf-field-radius);font:400 16px/24px 'ReuanFai UI',sans-serif}
+
+/* One spacing scale across every questionnaire step. */
+.stageForm .wizardFields{gap:var(--rf-field-group-gap)}
+.stageForm .wizardFields>.contactField,.stageForm .dateField,.stageForm .dropdownField{gap:var(--rf-field-label-gap)}
+.stageForm .choiceGroup legend{line-height:22px;margin-bottom:var(--rf-field-label-gap)}
+.stageForm .choices{gap:var(--rf-space-2)}
+.stageForm .stepTitle{margin-bottom:var(--rf-space-6)}

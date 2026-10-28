@@ -9,3 +9,7 @@
 .viewOut{animation:profileOut 160ms ease-in both;pointer-events:none}.viewIn{animation:profileIn 260ms cubic-bezier(.22,1,.36,1) both;pointer-events:none}.page{--profile-out:-24px;--profile-in:48px}.page[data-profile-direction="-1"]{--profile-out:48px;--profile-in:-24px}@keyframes profileOut{to{opacity:0;translate:var(--profile-out) 0}}@keyframes profileIn{from{opacity:0;translate:var(--profile-in) 0}to{opacity:1;translate:0 0}}@media(prefers-reduced-motion:reduce){.viewOut,.viewIn{animation:none}}
 
 .pickerField{display:grid;gap:10px;margin-top:20px;color:#625d70;font-size:14px;font-weight:500}
+
+.editPage .form label,.pickerField{gap:var(--rf-field-label-gap);margin-top:var(--rf-field-group-gap)}
+
+.editPage .form section{margin-bottom:var(--rf-space-8)}.editPage .form section h2{margin-bottom:var(--rf-space-6)}.editPage .form label:first-of-type{margin-top:0}
