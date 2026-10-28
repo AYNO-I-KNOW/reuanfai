@@ -39,8 +39,8 @@
 .form .moods button{border-radius:16px;gap:4px;opacity:.7;filter:none;transform:none;transition:opacity 180ms ease}
 .form .moods button[aria-pressed=true]{transform:none;opacity:1}
 .form .moods button[aria-pressed=true] .moodVector{background:#f1ebff;border-radius:50%}
-.moodLabel{font:400 11px/18px 'ReuanFai UI',sans-serif;color:#625d70;white-space:nowrap}
-.form .moods button[aria-pressed=true] .moodLabel{color:#6549f7;font-weight:600}
+.moodLabel{font:400 13px/20px 'ReuanFai UI',sans-serif;color:#625d70;white-space:nowrap}
+.form .moods button[aria-pressed=true] .moodLabel{color:#6549f7;font-weight:500}
 .optional{color:#8b8796;font-size:12px;font-weight:400}
 .form>label{display:block}.form>label textarea{display:block;width:100%;margin-top:8px}
 .symptoms{display:flex;flex-wrap:wrap;gap:8px}
@@ -65,3 +65,16 @@
 .calendarDay{position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;min-width:0;min-height:64px;padding:0;border:0;background:transparent;color:#625d70;font:400 12px/18px 'ReuanFai UI',sans-serif;cursor:pointer}
 .dayCircle{position:relative;display:grid;place-items:center;width:100%;max-width:52px;aspect-ratio:1;border-radius:50%;background:#e5dfef;flex-shrink:0;transition:background-color 120ms ease,transform 120ms ease}.emptyCircle{display:block;width:100%;height:100%;border-radius:50%;background:#e5dfef}.dayCircle svg{display:block;width:100%;height:100%;overflow:visible}.calendarDay[aria-current=date] .dayCircle{box-shadow:0 0 0 2px #6549f7;outline:none}.calendarDay[aria-current=date] .dayNumber{color:#6549f7;font-weight:600}.calendarDay:disabled{opacity:.35;cursor:default}.calendarDay:not(:disabled):active .dayCircle{transform:scale(.96);background:#d9cef3}.calendarDay:focus-visible{outline:none}.calendarDay:focus-visible .dayCircle{outline:2px solid #6549f7;outline-offset:3px}.entryCount{position:absolute;right:0;top:0;background:#fff;border-radius:99px;min-width:16px;font-size:10px;line-height:16px;color:#6549f7}.olderMonths{display:block;margin:32px auto 8px;padding:12px 20px;min-height:44px;border:0;border-radius:16px;background:#fff;color:#6549f7;font:400 14px/22px 'ReuanFai UI',sans-serif;cursor:pointer}.dailyEntries{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}.dailyEntries button{min-height:44px;border:0;border-radius:16px;padding:8px 12px;background:#f5f2fc;color:#625d70;font:inherit;font-size:13px}.dailyEntries button[aria-pressed=true]{background:#e7dfff;color:#5438bd}
 @media(max-width:350px){.weekdays,.calendarDays{column-gap:5px}.calendarDays{row-gap:12px}.monthStack{gap:32px}.calendarDay{min-height:58px}}@media(prefers-reduced-motion:reduce){.dayCircle{transition:none}.calendarDay:not(:disabled):active .dayCircle{transform:none}}
+
+/* Mood portraits fill their day slot; empty days stay quiet behind them. */
+.dayCircle{max-width:60px;background:transparent}.dayCircle svg{border-radius:50%}.emptyCircle{background:#ded6ed}.calendarDays{row-gap:18px}.calendarMonth h2{font-size:20px;line-height:30px}.dayNumber{font-size:13px;line-height:20px;color:#6f657e}.calendarDay{gap:8px}
+
+/* Reserve the selected portrait's space; animate only art, never the form layout. */
+.form .moods{grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;width:100%;max-width:400px;margin:8px auto 0;min-height:104px;align-items:start}
+.form .moods button,.form .moods button[aria-pressed=true]{display:flex;flex-direction:column;justify-content:flex-start;align-items:center;gap:10px;min-height:104px;padding:0;border-radius:12px;background:transparent;opacity:1;filter:none;transform:none;transition:none}
+.moodIconSlot{display:grid;place-items:center;width:100%;height:72px;flex-shrink:0}
+.form .moods .moodVector{display:block;width:min(100%,72px);height:auto;aspect-ratio:1;transform:scale(.92);opacity:.88;transform-origin:center;transition:transform 260ms cubic-bezier(.22,1,.36,1),opacity 180ms ease;background:transparent;border-radius:50%}
+.form .moods[data-has-selection=true] .moodVector{transform:scale(.86);opacity:.88}
+.form .moods button[aria-pressed=true] .moodVector{transform:scale(1.18);opacity:1;background:transparent}
+.form .moods .moodLabel{display:block;min-height:20px;line-height:20px;text-align:center}
+@media(prefers-reduced-motion:reduce){.form .moods .moodVector{transition:none}}
