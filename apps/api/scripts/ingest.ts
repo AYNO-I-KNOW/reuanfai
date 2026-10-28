@@ -1,17 +1,18 @@
-// usage: pnpm --filter @reuanfai/api ingest <pdf> <source.json> [--force]
-// PDF -> per-page text via pdftotext (knowledge/<source_id>/pNNN.md, resumable; --force re-extracts) -> chunks -> local embeddings
-// -> kb_replace_source_chunks in batches (first batch replaces the source, the rest append)
+// usage: pnpm --filter @reuanfai/api ingest <pdf> <source.json> [--force] [--embed-only]
+// PDF -> per-page text via pdftotext (knowledge/<source_id>/pNNN.md, resumable; --force re-extracts) -> chunks -> Gemini embeddings
+// (cached + throttled, see embed-cache.ts) -> kb_replace_source_chunks in batches (first batch replaces the source, the rest append)
+// --embed-only: fill the embedding cache and stop before touching the DB (free-tier daily quota: do every source, then ingest normally)
 import { readFile, writeFile, mkdir, readdir, rename } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { z } from 'zod'
 import { getIngestEnv } from '../src/env.js'
-import { embedDocuments, getSupabase } from '../src/kb-clients.js'
+import { getSupabase } from '../src/kb-clients.js'
 import { chunkPage } from '../src/kb-lib.js'
+import { DailyQuotaError, embedCached } from './embed-cache.js'
 import { extractPage, pageCount } from './pdf.js'
 
 const KNOWLEDGE_DIR = fileURLToPath(new URL('../../../knowledge/', import.meta.url))
-const EMBED_BATCH = 16
 // one jsonb call for a whole source hit the statement timeout
 const INSERT_BATCH = 100
 // scanned pages have no text layer; no LLM/OCR fallback (prototype)
@@ -43,9 +44,10 @@ async function writeAtomic(file: string, content: string) {
 
 const args = process.argv.slice(2)
 const force = args.includes('--force')
+const embedOnly = args.includes('--embed-only')
 const [pdfPath, sourcePath, ...extra] = args.filter((a) => !a.startsWith('--'))
-if (!pdfPath || !sourcePath || extra.length || args.some((a) => a.startsWith('--') && a !== '--force')) {
-  console.error('usage: ingest <pdf> <source.json> [--force]')
+if (!pdfPath || !sourcePath || extra.length || args.some((a) => a.startsWith('--') && a !== '--force' && a !== '--embed-only')) {
+  console.error('usage: ingest <pdf> <source.json> [--force] [--embed-only]')
   process.exit(1)
 }
 try {
@@ -90,15 +92,17 @@ for (const name of (await readdir(dir)).sort()) {
 }
 if (!rows.length) throw new Error(`no chunks produced for ${source.id}; refusing to wipe existing rows`)
 
-const vectors: number[][] = []
-for (let i = 0; i < rows.length; i += EMBED_BATCH) {
-  const batch = rows.slice(i, i + EMBED_BATCH)
-  const embeddings = await embedDocuments(batch.map((r) => r.text))
-  if (embeddings.length !== batch.length) {
-    throw new Error(`embedding count mismatch: got ${embeddings.length}, expected ${batch.length}`)
-  }
-  vectors.push(...embeddings)
-  console.log(`embedded ${vectors.length}/${rows.length}`)
+let vectors: number[][]
+try {
+  vectors = await embedCached(rows.map((r) => r.text))
+} catch (err) {
+  if (!(err instanceof DailyQuotaError)) throw err
+  console.error(`${err.message} — DB untouched; rerun after the quota resets (cached vectors are kept)`)
+  process.exit(2)
+}
+if (embedOnly) {
+  console.log(`embedded ${rows.length} chunks for ${source.id} (DB untouched)`)
+  process.exit(0)
 }
 
 // each batch is its own transaction: a failure after the first batch empties the source (fail closed) — rerun the ingest to fix it

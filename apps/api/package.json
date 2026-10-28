@@ -10,6 +10,7 @@
   "scripts": {
     "dev": "tsx watch --env-file-if-exists=../../.env src/dev.ts",
     "ingest": "tsx --env-file=../../.env scripts/ingest.ts",
+    "embed-suggestions": "tsx --env-file=../../.env scripts/embed-suggestions.ts",
     "eval": "tsx --env-file=../../.env scripts/eval.ts",
     "build": "tsc --noEmit",
     "typecheck": "tsc --noEmit",
@@ -18,7 +19,6 @@
   "dependencies": {
     "@ai-sdk/openai-compatible": "^3.0.80",
     "@hono/node-server": "^2.1.1",
-    "@huggingface/transformers": "^4.3.2",
     "@supabase/supabase-js": "^2.118.0",
     "ai": "^7.0.154",
     "hono": "^4.13.9",

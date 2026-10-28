@@ -20,7 +20,7 @@ flowchart LR
       BK[booking + quota]
       AI[AI-1 / AI-2]
       KB[KB /kb/ask<br/>prototype]
-      EMB[embedding ในเครื่อง<br/>e5-base 768]
+      EMB[embedding client<br/>gemini-embedding-2 768]
     end
   end
 
@@ -121,8 +121,8 @@ docs/
 `agg_*` views → AI-1 (batch รายสัปดาห์ หรือกดสั่ง) → `ai_proposals(pending)` → ผู้เชี่ยวชาญ รับ/ไม่รับ/ขอข้อมูลเพิ่ม → ถ้าเกี่ยวกับเกณฑ์ สร้าง `ruleset_versions(draft)` → `rule_approver` อนุมัติ → active
 
 ### 4.6 KB ถาม-ตอบจากเอกสารอ้างอิง (ต้นแบบ — ดู `specs/ai.md`)
-- **ingest** (รันมือ): PDF → `pdftotext` ทีละหน้า → `knowledge/<source_id>/pNNN.md` → chunk ≤1200 ตัวอักษร → embed ในเครื่อง (`Xenova/multilingual-e5-base`, 768 มิติ) → `kb_replace_source_chunks` ลง `kb_chunks` (ข้อมูลอ้างอิงที่มา `kb_sources`)
-- **ask**: `POST /kb/ask` → embed คำถามในเครื่อง → `match_kb_chunks_hybrid` (dense cosine + keyword ILIKE, รวมด้วย RRF) → relevance gate → Gemini ผ่าน OpenAI-compatible endpoint (`AI_BASE_URL`) ตอบจาก chunk เท่านั้น → โค้ดกรอง citation → ตอบ `{ label, answer, citations }`
+- **ingest** (รันมือ): PDF → `pdftotext` ทีละหน้า → `knowledge/<source_id>/pNNN.md` → chunk ≤1200 ตัวอักษร → embed ผ่าน Gemini (`gemini-embedding-2`, 768 มิติ, cache + throttle ตาม free tier) → `kb_replace_source_chunks` ลง `kb_chunks` (ข้อมูลอ้างอิงที่มา `kb_sources`)
+- **ask**: `POST /kb/ask` → embed คำถามผ่าน Gemini (`AI_BASE_URL`) → `match_kb_chunks_hybrid` (dense cosine + keyword ILIKE, รวมด้วย RRF) → relevance gate → Gemini ผ่าน OpenAI-compatible endpoint (`AI_BASE_URL`) ตอบจาก chunk เท่านั้น → โค้ดกรอง citation → ตอบ `{ label, answer, citations }`
 - ไม่ผ่าน rules engine และไม่ตัดสิน/คัดกรองผู้ใช้ (ADR-0001)
 
 ## 5. Trust boundaries
@@ -156,7 +156,7 @@ docs/
 
 ## 7. Env
 
-ดูใน `/.env.example` — api ใช้: `SUPABASE_*`, `LINE_*`, `SESSION_JWT_SECRET`, `CRON_SECRET`, `AI_GATEWAY_API_KEY`, `AI_MODEL` KB ต้นแบบใช้: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_DB_URL` (เฉพาะ psql migrate), `AI_API_KEY`, `AI_BASE_URL`, `AI_MODEL`, `AI_REASONING_EFFORT`, `AI_EMBEDDING_MODEL`, `KB_ASK_ENABLED` ส่วน web ใช้: `API_ORIGIN` (server-only, ปลายทางของ rewrite), `NEXT_PUBLIC_LIFF_ID`
+ดูใน `/.env.example` — api ใช้: `SUPABASE_*`, `LINE_*`, `SESSION_JWT_SECRET`, `CRON_SECRET` (AI-1/AI-2 ผ่าน AI Gateway ยังไม่ implement: `AI_GATEWAY_API_KEY`) · KB ต้นแบบใช้ (ไม่ผ่าน Gateway): `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_DB_URL` (เฉพาะ psql migrate), `AI_API_KEY`, `AI_BASE_URL` (ใช้ทั้งแชทและ embedding), `AI_MODEL`, `AI_FALLBACK_MODEL`, `AI_REASONING_EFFORT`, `AI_EMBEDDING_MODEL` (default `gemini-embedding-2`), `KB_ASK_ENABLED` ส่วน web ใช้: `API_ORIGIN` (server-only, ปลายทางของ rewrite), `NEXT_PUBLIC_LIFF_ID`
 
 ## 8. Deploy
 

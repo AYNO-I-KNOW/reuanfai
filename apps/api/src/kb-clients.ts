@@ -1,10 +1,13 @@
-import { readFile } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
 import { createClient } from '@supabase/supabase-js'
 import { createOpenAICompatible } from '@ai-sdk/openai-compatible'
+import { embedMany } from 'ai'
 import { z } from 'zod'
 import { getAskEnv, getIngestEnv } from './env.js'
 import { missingTopicSuggestions } from './kb-lib.js'
+// static JSON imports (not readFile) so the Vercel bundler traces them into the function
+import suggestionsJson from '../../../knowledge/suggestions.json' with { type: 'json' }
+import suggestionEmbeddingsJson from '../../../knowledge/suggestions.embeddings.json' with { type: 'json' }
 
 // lazy: /health and the rest of the api must work without KB env vars
 const SUPABASE_TIMEOUT_MS = 10_000
@@ -24,63 +27,73 @@ const createSupabase = () =>
 let supabaseClient: ReturnType<typeof createSupabase> | undefined
 export const getSupabase = () => (supabaseClient ??= createSupabase())
 
-export const getChatModel = (modelId?: string) => {
-  const env = getAskEnv()
-  return createOpenAICompatible({ name: 'llm', baseURL: env.AI_BASE_URL, apiKey: env.AI_API_KEY })(
-    modelId ?? env.AI_MODEL,
-  )
+const createProvider = () => {
+  const env = getIngestEnv()
+  return createOpenAICompatible({ name: 'llm', baseURL: env.AI_BASE_URL, apiKey: env.AI_API_KEY })
 }
 
-// kb_chunks.embedding is vector(768); multilingual-e5-base is 768-dim
-const EMBEDDING_DIMS = 768
-let extractor: ReturnType<typeof loadExtractor> | undefined
-// dynamic import: loading onnx at boot would slow /health and the non-KB api
-const loadExtractor = async () => {
-  const { pipeline } = await import('@huggingface/transformers')
-  return pipeline('feature-extraction', getIngestEnv().AI_EMBEDDING_MODEL)
-}
-// a rejected load is not memoized, so the next request retries
-const getExtractor = () =>
-  (extractor ??= loadExtractor().catch((err) => {
-    extractor = undefined
-    throw err
-  }))
+export const getChatModel = (modelId?: string) => createProvider()(modelId ?? getAskEnv().AI_MODEL)
 
-// e5 needs a prefix: "passage: " for stored text, "query: " for questions
-async function embed(prefix: 'passage' | 'query', values: string[]): Promise<number[][]> {
-  const output = await (await getExtractor())(values.map((v) => `${prefix}: ${v}`), { pooling: 'mean', normalize: true })
-  const vectors = output.tolist() as number[][]
-  if (vectors.length !== values.length || vectors.some((v) => v.length !== EMBEDDING_DIMS)) {
-    throw new Error(`embedding shape mismatch: expected ${values.length}x${EMBEDDING_DIMS}, got dims [${output.dims}]`)
+// kb_chunks.embedding is vector(768); gemini-embedding-2 truncates to `dimensions` and returns it normalized
+export const EMBEDDING_DIMS = 768
+const EMBED_TIMEOUT_MS = 15_000
+
+// gemini-embedding-2 has no task_type: the task goes into the text (asymmetric retrieval format from the Gemini docs)
+const queryText = (value: string) => `task: search result | query: ${value}`
+const documentText = (value: string) => `title: none | text: ${value}`
+
+// no SDK retries: a user request must fail fast, and ingest does its own 429 backoff
+async function embed(values: string[]): Promise<number[][]> {
+  const { embeddings } = await embedMany({
+    model: createProvider().embeddingModel(getIngestEnv().AI_EMBEDDING_MODEL),
+    values,
+    maxRetries: 0,
+    abortSignal: AbortSignal.timeout(EMBED_TIMEOUT_MS),
+    providerOptions: { openaiCompatible: { dimensions: EMBEDDING_DIMS } },
+  })
+  if (embeddings.length !== values.length || embeddings.some((v) => v.length !== EMBEDDING_DIMS)) {
+    throw new Error(`embedding shape mismatch: expected ${values.length}x${EMBEDDING_DIMS}, got ${embeddings.length}x${embeddings[0]?.length}`)
   }
-  return vectors
+  return embeddings
 }
 
 export async function embedQuestion(question: string) {
-  return (await embed('query', [question]))[0]!
+  return (await embed([queryText(question)]))[0]!
 }
 
-export const embedDocuments = (values: string[]) => embed('passage', values)
+// one API call: callers keep batches <= 100 (Gemini limit)
+export const embedDocuments = (values: string[]) => embed(values.map(documentText))
 
-const SUGGESTIONS_FILE = fileURLToPath(new URL('../../../knowledge/suggestions.json', import.meta.url))
-const suggestionList = z.array(z.string().min(1))
+export const embedQueries = (values: string[]) => embed(values.map(queryText))
+
+export const SUGGESTIONS_FILE = fileURLToPath(new URL('../../../knowledge/suggestions.json', import.meta.url))
+// precomputed by scripts/embed-suggestions.ts so a (cold-started) process never spends embedding requests on them
+export const SUGGESTIONS_EMBEDDINGS_FILE = fileURLToPath(new URL('../../../knowledge/suggestions.embeddings.json', import.meta.url))
+export const suggestionList = z.array(z.string().min(1))
+export const suggestionEmbeddings = z.object({
+  model: z.string().min(1),
+  dims: z.number().int(),
+  items: z.array(z.object({ text: z.string().min(1), vec: z.array(z.number()) })),
+})
 let suggestions: Promise<{ text: string; vec: number[] }[]> | undefined
 const loadSuggestions = async () => {
-  const texts = suggestionList.parse(JSON.parse(await readFile(SUGGESTIONS_FILE, 'utf8')))
+  const texts = suggestionList.parse(suggestionsJson)
   const missing = missingTopicSuggestions(texts)
   if (missing.length) console.warn(`kb topic suggestions not in suggestions.json: ${missing.join(' | ')}`)
-  const vecs = await embed('query', texts)
-  return texts.map((text, i) => ({ text, vec: vecs[i]! }))
+  const file = suggestionEmbeddings.parse(suggestionEmbeddingsJson)
+  const model = getIngestEnv().AI_EMBEDDING_MODEL
+  const stale =
+    file.model !== model ||
+    file.dims !== EMBEDDING_DIMS ||
+    file.items.length !== texts.length ||
+    file.items.some((x, i) => x.text !== texts[i] || x.vec.length !== EMBEDDING_DIMS)
+  // fail loud instead of silently re-embedding (each text is a metered request)
+  if (stale) throw new Error(`suggestions.embeddings.json is stale for ${model}/${EMBEDDING_DIMS} — run: pnpm --filter @reuanfai/api embed-suggestions`)
+  return file.items
 }
-// "query:" prefix on both sides: question-vs-question similarity. A rejected load is not memoized (like getExtractor)
+// a rejected load is not memoized, so the next request retries
 export const getSuggestions = () =>
   (suggestions ??= loadSuggestions().catch((err) => {
     suggestions = undefined
     throw err
   }))
-
-// first embed pays the model load (~3s); do it at startup so the first user request does not
-export const warmupEmbeddings = async () => {
-  await embedQuestion('warmup')
-  await getSuggestions()
-}

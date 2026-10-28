@@ -10,3 +10,6 @@ next-env.d.ts
 
 # ต้นฉบับ PDF ของ KB (ไฟล์ใหญ่, โหลดใหม่ได้จาก url ใน source.json)
 knowledge/_pdf/
+
+# embedding cache ของ ingest (resume ข้ามวันตาม quota)
+knowledge/.embed-cache/
