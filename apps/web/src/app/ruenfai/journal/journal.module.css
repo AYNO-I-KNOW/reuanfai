@@ -53,3 +53,8 @@
 .editButton{composes:primary from '../foundation.module.css';width:100%;margin-top:24px}
 
 .readerSheet .detail{padding-bottom:16px;min-height:0;flex:1;overflow-y:auto}.readerFooter{flex-shrink:0;padding:12px 20px calc(20px + env(safe-area-inset-bottom,0px));background:#fff}.readerFooter .editButton{margin-top:0}
+
+/* Quiet notebook rules continue beneath short entries inside the reader only. */
+.readerSheet .detail{display:flex;flex-direction:column}
+.readerSheet .detail .fullText{flex:1 0 auto;line-height:32px;margin:8px 0 0;background-image:repeating-linear-gradient(to bottom,transparent 0,transparent 31px,#eeeaf3 31px,#eeeaf3 32px);background-attachment:local}
+.readerSheet .recordSymptoms{flex-shrink:0}
