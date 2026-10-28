@@ -19,6 +19,8 @@ flowchart LR
       RE[rules engine<br/>pure, no AI]
       BK[booking + quota]
       AI[AI-1 / AI-2]
+      KB[KB /kb/ask<br/>prototype]
+      EMB[embedding ในเครื่อง<br/>e5-base 768]
     end
   end
 
@@ -26,10 +28,12 @@ flowchart LR
     DB[(Postgres<br/>RLS deny-all)]
     AG[[agg_* views<br/>consent + n≥5]]
     CR[pg_cron]
+    KBT[(kb_sources<br/>kb_chunks pgvector)]
   end
 
   LINE[LINE Platform<br/>Login · Messaging]
   GW[AI Gateway<br/>AI_MODEL]
+  GM[Gemini<br/>OpenAI-compatible]
 
   M -- LIFF --> W
   P --> W
@@ -42,6 +46,9 @@ flowchart LR
   LINE -- webhook follow --> A
   CR -- /cron/dispatch 5m<br/>/cron/sweep daily --> A
   AI --> GW
+  KB --> EMB
+  KB -- service role --> KBT
+  KB -- chunk ที่ผ่าน gate + คำถาม --> GM
   A --- A_int
 ```
 
@@ -55,6 +62,7 @@ flowchart LR
 | Supabase | เก็บข้อมูล, aggregate views, pg_cron | ไม่มี policy ให้ client (RLS deny-all) |
 | LINE | ช่องทางเข้า + แจ้งเตือน | ห้ามมีข้อมูลสุขภาพในแชท |
 | AI Gateway | LLM สำหรับ AI-1/AI-2 | ห้ามเห็นข้อมูลรายคน |
+| KB (`apps/api` `/kb/ask`, ต้นแบบ) | ค้นเอกสารอ้างอิงใน pgvector แล้วให้ LLM สรุปจาก chunk ที่ค้นได้ + citation | ไม่มี tools/web search, ไม่แตะ rules engine, ไม่รับข้อมูลรายคน (ADR-0017) |
 
 ## 3. โครงสร้าง repo (เป้าหมาย)
 
@@ -79,8 +87,11 @@ apps/
     ai/           ai1.ts · ai2.ts · scrub.ts
     auth.ts       session JWT, requireRole()
     db.ts
+    kb.ts         POST /kb/ask (flag-gated) · kb-lib.ts (pure helpers) · kb-clients.ts (Supabase, embeddings, chat model)
+  api/scripts/    ingest.ts (PDF → chunks → embeddings) · eval.ts (hit@5) · pdf.ts (pdftotext)
+knowledge/        <source_id>/pNNN.md (ข้อความรายหน้า) · eval.json · _pdf/ (ต้นฉบับ)
 supabase/
-  migrations/     0001_init.sql · 0002_aggregates.sql · 0003_cron.sql
+  migrations/     ที่มีแล้ว (KB): 0001_kb · 0002_kb_hardening · 0003_kb_hybrid · 0004_kb_exact_filter · 0005_kb_query_tidy · 0006_kb_source_short — ที่เหลือ (init, aggregates, cron) ต่อเลขถัดไป
   seed.sql
 docs/
 ```
@@ -109,6 +120,11 @@ docs/
 ### 4.5 กรมฯ → AI-1 → ร่างกฎ
 `agg_*` views → AI-1 (batch รายสัปดาห์ หรือกดสั่ง) → `ai_proposals(pending)` → ผู้เชี่ยวชาญ รับ/ไม่รับ/ขอข้อมูลเพิ่ม → ถ้าเกี่ยวกับเกณฑ์ สร้าง `ruleset_versions(draft)` → `rule_approver` อนุมัติ → active
 
+### 4.6 KB ถาม-ตอบจากเอกสารอ้างอิง (ต้นแบบ — ดู `specs/ai.md`)
+- **ingest** (รันมือ): PDF → `pdftotext` ทีละหน้า → `knowledge/<source_id>/pNNN.md` → chunk ≤1200 ตัวอักษร → embed ในเครื่อง (`Xenova/multilingual-e5-base`, 768 มิติ) → `kb_replace_source_chunks` ลง `kb_chunks` (ข้อมูลอ้างอิงที่มา `kb_sources`)
+- **ask**: `POST /kb/ask` → embed คำถามในเครื่อง → `match_kb_chunks_hybrid` (dense cosine + keyword ILIKE, รวมด้วย RRF) → relevance gate → Gemini ผ่าน OpenAI-compatible endpoint (`AI_BASE_URL`) ตอบจาก chunk เท่านั้น → โค้ดกรอง citation → ตอบ `{ label, answer, citations }`
+- ไม่ผ่าน rules engine และไม่ตัดสิน/คัดกรองผู้ใช้ (ADR-0001)
+
 ## 5. Trust boundaries
 
 | Boundary | ควบคุมด้วย |
@@ -121,6 +137,9 @@ docs/
 | provider → ข้อมูลแม่ | ต้องอยู่ใน unit เดียวกัน **และ** มี `shares` ที่ยังไม่หมดอายุ, log ทุกครั้งที่เปิด |
 | dtam → ข้อมูล | ใช้ได้แค่ `agg_*` views, n<5 suppress |
 | api → LLM | ส่งเฉพาะข้อมูลรวมกลุ่ม / ข้อความที่ scrub แล้ว, ใช้ zero data retention |
+| KB: api → DB | `SUPABASE_SERVICE_ROLE_KEY` อยู่ใน env ของ api เท่านั้น (ingest ก็รันจาก api) · web ไม่แตะ `kb_*` (ADR-0004) |
+| KB: เครือข่าย | dev bind `127.0.0.1` เท่านั้น · เข้าถึงได้ทาง `/api/*` proxy ของ web (ADR-0013) · rate limit ต่อผู้ใช้: peer เป็น loopback (= web proxy) → hop ขวาสุดของ `x-forwarded-for` ที่ proxy ต่อท้าย (hop ซ้ายผู้ใช้ปลอมได้) · peer อื่น → socket address |
+| KB: api → Gemini | ส่งได้เฉพาะคำถามจำลอง + chunk เอกสาร open license (ADR-0012, ADR-0017, SPEC Q28) · ยังไม่มี ZDR → ห้ามข้อมูลจริง |
 
 ## 6. ใครเห็นอะไร
 
@@ -137,7 +156,7 @@ docs/
 
 ## 7. Env
 
-ดูใน `/.env.example` — api ใช้: `SUPABASE_*`, `LINE_*`, `SESSION_JWT_SECRET`, `CRON_SECRET`, `AI_GATEWAY_API_KEY`, `AI_MODEL` ส่วน web ใช้: `API_ORIGIN` (server-only, ปลายทางของ rewrite), `NEXT_PUBLIC_LIFF_ID`
+ดูใน `/.env.example` — api ใช้: `SUPABASE_*`, `LINE_*`, `SESSION_JWT_SECRET`, `CRON_SECRET`, `AI_GATEWAY_API_KEY`, `AI_MODEL` KB ต้นแบบใช้: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_DB_URL` (เฉพาะ psql migrate), `AI_API_KEY`, `AI_BASE_URL`, `AI_MODEL`, `AI_REASONING_EFFORT`, `AI_EMBEDDING_MODEL`, `KB_ASK_ENABLED` ส่วน web ใช้: `API_ORIGIN` (server-only, ปลายทางของ rewrite), `NEXT_PUBLIC_LIFF_ID`
 
 ## 8. Deploy
 

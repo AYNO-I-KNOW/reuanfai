@@ -5,12 +5,13 @@
 > web เรียกผ่าน `hc<AppType>` ทุก route ต้อง chain บน app เดียวกันเพื่อให้ type ไหลไปถึง web
 
 ## Error codes
-`unauthorized` 401 · `forbidden` 403 · `not_found` 404 · `validation` 422 · `consent_required` 403 · `referral_locked` 409 · `quota_exhausted` 409 · `slot_full` 409 · `outside_window` 409 · `same_day` 409 · `out_of_stock` 409 · `eligibility_unchecked` 422 · `share_required` 403
+`unauthorized` 401 · `forbidden` 403 · `not_found` 404 · `validation` 422 · `consent_required` 403 · `referral_locked` 409 · `quota_exhausted` 409 · `slot_full` 409 · `outside_window` 409 · `same_day` 409 · `out_of_stock` 409 · `eligibility_unchecked` 422 · `share_required` 403 · `rate_limited` 429 · `kb_unavailable` 502 · `ai_unavailable` 502
 
 ## 0. Public / system
 | Method | Path | Auth | หมายเหตุ |
 |---|---|---|---|
 | GET | `/health` | public | ✅ มีแล้ว |
+| POST | `/kb/ask` | public-prototype | mount เฉพาะเมื่อ `KB_ASK_ENABLED=true` (ไม่อยู่ใน `AppType`) · body ≤4096 B: `{ question: string 1–500, track?: 'intl'\|'thai_trad', k?: int 1–10 = 5 }` → 200 `{ kind: 'answer'\|'smalltalk'\|'topic'\|'red_flag'\|'out_of_scope'\|'not_found', label: 'สรุปโดย AI'\|null (มีเฉพาะ kind=answer), answer, citations[{sourceId, page, short, apa, url, license}] (`short` = ชื่อสั้นสำหรับแสดงรวมต่อแหล่ง, null ได้), model (null เมื่อไม่ได้เรียก LLM), suggestions: string[], emergency?: boolean (เฉพาะ topic — web แสดงปุ่มติดต่อด่วน), cached: boolean }` · `red_flag` (keyword เกณฑ์ส่งต่อ ไม่ใช้ LLM/embed) และ `smalltalk` ตอบข้อความตายตัวก่อน cache · `topic` = ข้อความตรงกับ chip หัวข้อสนทนาของแชทแม่ (match ทั้งข้อความ, `?` ไม่บังคับ) ตอบข้อความตายตัว + `suggestions` ที่ KB ตอบได้ ไม่ embed/LLM ไม่ cache · ไม่ผ่าน relevance gate = `out_of_scope` · ผ่าน gate แต่ไม่พบ/ไม่มี citation = `not_found` (ทั้งสอง `citations: []`) + `suggestions` 2 คำถามที่ KB ตอบได้ใกล้สุด (จาก `knowledge/suggestions.json` ต้อง verify แล้ว; คำตอบปกติ = `[]`) · errors: `validation` 422 (body ผิด/ใหญ่เกิน) · `rate_limited` 429 (5/นาที + 100/วัน ต่อผู้ใช้ — key = hop ขวาสุดของ XFF เมื่อมาจาก web proxy, ไม่งั้น socket address, in-flight >4, หรือ LLM เกิน 400 ครั้ง/วัน — ต่อ process, in-memory) · `kb_unavailable` 502 (DB/embedding) · `ai_unavailable` 502 (LLM/timeout/JSON ไม่ผ่าน) · โมเดลหลักตอบ 429 → ลองใหม่ 1 ครั้งด้วย `AI_FALLBACK_MODEL` (ถ้าตั้ง; `model` = ตัวที่ตอบจริง) · cache 24 ชม. (NOT_FOUND 60 วิ) · กติกาตอบดู `ai.md` §KB · **TODO `requireRole('mother','staff')`** ก่อนเปิดจริง (ADR-0017) |
 | POST | `/auth/line` | public | `{ idToken }` → set cookie, `{ mother: { id, hasConsent } }` |
 | POST | `/auth/staff` | public | `{ username, password, unitId?, role }` → set cookie · rate limit 5/นาที/IP |
 | POST | `/auth/logout` | any | |

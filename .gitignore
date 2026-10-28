@@ -7,3 +7,6 @@ dist
 *.tsbuildinfo
 next-env.d.ts
 .DS_Store
+
+# ต้นฉบับ PDF ของ KB (ไฟล์ใหญ่, โหลดใหม่ได้จาก url ใน source.json)
+knowledge/_pdf/
