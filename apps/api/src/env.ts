@@ -20,7 +20,7 @@ const askSchema = baseSchema.extend({
 export type IngestEnv = z.infer<typeof baseSchema>
 export type AskEnv = z.infer<typeof askSchema>
 
-function parse<S extends z.ZodType>(schema: S, source: NodeJS.ProcessEnv): z.infer<S> {
+function parse<S extends z.ZodType>(schema: S, source: Record<string, string | undefined>): z.infer<S> {
   const parsed = schema.safeParse(source)
   if (parsed.success) return parsed.data
   // keys only — never echo values (secrets)
