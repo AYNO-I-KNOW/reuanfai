@@ -162,3 +162,22 @@
 
 /* The viewport wrapper must never scroll to follow autofocus during entry. */
 .medicineDialog{overflow:clip;}
+
+/* Service lifecycle: only actionable pills have a chevron. */
+.appointmentCard .appointmentTonepurple{background:#f0ebff;color:#5438bd}
+.appointmentCard .appointmentToneyellow{background:#fff4cc;color:#876514}
+.appointmentCard .appointmentTonegreen{background:#e5f5ee;color:#21745c}
+.appointmentCard .appointmentTonegray{background:#f0eef4;color:#625d70}
+.appointmentCard .appointmentStatusDescription{min-height:46px;overflow-wrap:anywhere;text-wrap:pretty}
+.appointmentCard .pill{white-space:normal;text-align:left}
+.appointmentDetailsCard{position:relative}
+.appointmentDetailsButton{position:absolute;inset:0;border:0;border-radius:24px;background:transparent;cursor:pointer}
+.appointmentDetailsButton:focus-visible{outline:2px solid #6549f7;outline-offset:3px}
+
+/* Split service information from the status/action row; never nest buttons. */
+.serviceInfoTrigger{display:flex;flex-direction:column;align-items:flex-start;gap:10px;width:100%;padding:0;border:0;background:transparent;color:inherit;text-align:left;font:inherit;cursor:pointer;border-radius:14px}
+.serviceInfoTrigger:focus-visible,.serviceActionRow:focus-visible,.appointmentDateLink:focus-visible{outline:2px solid #6549f7;outline-offset:3px}
+.serviceActionRow,.serviceStatusRow{width:100%;min-height:44px;margin-top:auto;display:flex;align-items:center;padding:0}
+.serviceActionRow{border:0;border-radius:12px;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer}
+.serviceActionRow:active{background:#f6f3ff}.serviceStatusRow{cursor:default}.serviceActionRow .pill,.serviceStatusRow .pill{margin:0}
+.appointmentDateLink{width:100%;padding:0;border:0;background:transparent;text-align:left;font:inherit;cursor:pointer}

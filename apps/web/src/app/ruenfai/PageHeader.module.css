@@ -3,3 +3,8 @@
 .action{align-self:center;margin-top:0;}
 
 .profileLink{display:flex;align-items:flex-start;gap:16px;flex:1;min-width:0;color:inherit;text-decoration:none;border-radius:16px}.profileLink:focus-visible{outline:2px solid #6549f7;outline-offset:4px}
+
+/* Title-only headers reserve 19px below the 30px title in their 56px slot.
+   Add at most 5px before content so the visible title-to-content gap is 24px.
+   Keep the shared title baseline and action hit areas unchanged. */
+.header.header:not(:has(.subtitle,.leading)) + *{margin-block-start:5px}

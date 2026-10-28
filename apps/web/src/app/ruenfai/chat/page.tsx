@@ -5,7 +5,9 @@ import Image from "next/image";
 import {Fragment,useEffect,useRef,useState} from "react";
 import s from "./chat.module.css";
 import EmergencyAction from "../EmergencyAction";
+import ThinkingIndicator from "./ThinkingIndicator";
 import {routes as tabRoutes,useTabNavigation} from "../TabMotion";
+import {getServiceInfo} from "../services/service-info";
 import {allChatTopics,useChatTopics} from "../chat-topics";
 type Citation = { sourceId: string; page: number; short?: string | null; apa: string; url: string | null };
 type SourceGroup = { sourceId: string; short: string; apa: string; url: string | null; pages: number[] };
@@ -43,18 +45,36 @@ export default function ChatPage() {
   const topics=useChatTopics();
   const topicDrag=useRef<{x:number;left:number}|null>(null),topicMoved=useRef(false);
   const chatRoot=useRef<HTMLElement>(null);
+  useEffect(() => {
+    // Text inputs match :focus-visible even after a tap; track Tab explicitly.
+    const keyboard = (event: KeyboardEvent) => {
+      if (event.key === "Tab") chatRoot.current?.setAttribute("data-keyboard-focus", "true");
+    };
+    const pointer = () => chatRoot.current?.removeAttribute("data-keyboard-focus");
+    document.addEventListener("keydown", keyboard, true);
+    document.addEventListener("pointerdown", pointer, true);
+    return () => {
+      document.removeEventListener("keydown", keyboard, true);
+      document.removeEventListener("pointerdown", pointer, true);
+    };
+  }, []);
   useEffect(()=>{const viewport=window.visualViewport;if(!viewport)return;const resize=()=>{if(viewport.scale===1)chatRoot.current?.style.setProperty('--chat-height',`${viewport.height}px`)};resize();viewport.addEventListener('resize',resize);return()=>viewport.removeEventListener('resize',resize)},[]);
   const [returnTo, setReturnTo] = useState("/ruenfai");
-  useEffect(() => {
-    const from = new URLSearchParams(window.location.search).get("from");
-    if (tabRoutes.includes(from ?? "")) {
-      const timer = setTimeout(() => setReturnTo(from!), 0);
-      return () => clearTimeout(timer);
-    }
-  }, []);
   const [messages, setMessages] = useState<Message[]>([
     { text: "สวัสดีค่ะ วันนี้คุณแม่อยากปรึกษาเรื่องอะไร เล่าให้ฟังได้เลยนะคะ", user: false },
   ]);
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const from = params.get("from");
+    const topic = getServiceInfo(params.get("service"));
+    // ?service= only changes the greeting (no canned answers); replies still come from ask()
+    const contextTimer = setTimeout(() => { if (topic) setMessages([{ text: `กำลังอ่านเรื่อง${topic.name}อยู่ใช่ไหมคะ เลือกหัวข้อด้านล่าง หรือพิมพ์เรื่องที่อยากทราบเพิ่มเติมได้ค่ะ`, user: false }]); }, 0);
+    if (tabRoutes.includes(from ?? "")) {
+      const timer = setTimeout(() => setReturnTo(from! + (topic && from === "/ruenfai/appointments" ? `?service=${topic.id}` : "")), 0);
+      return () => { clearTimeout(timer); clearTimeout(contextTimer); };
+    }
+    return () => clearTimeout(contextTimer);
+  }, []);
   const [draft, setDraft] = useState("");
   const deepLinkSent=useRef(false);
   // ?question=label from the home bubble: a known chip label sends its mapped query once (timer + ref survive StrictMode's mount→unmount→mount); anything else only fills the draft, never auto-sends
@@ -173,17 +193,7 @@ export default function ChatPage() {
             </div>
           );
         })}
-        {replying && (
-          <div
-            className={`${s["ubot-bubble"]} ${s["ubot-typing"]}`}
-            role="status"
-            aria-label={'ผู้ช่วยกำลังพิมพ์'}
-          >
-            <span aria-hidden="true" />
-            <span aria-hidden="true" />
-            <span aria-hidden="true" />
-          </div>
-        )}
+        {replying && <ThinkingIndicator/>}
       </div>
       <footer className={s["ubot-composer"]}>
         <div
