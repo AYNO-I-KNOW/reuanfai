@@ -18,14 +18,24 @@ jobs:
       - run: pnpm lint
       - run: pnpm build
   deploy:
-    name: Deploy production to Vercel
+    name: Deploy ${{ matrix.app }} production to Vercel
     needs: check
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    strategy:
+      # api first: web's /api rewrite targets the api production domain
+      max-parallel: 1
+      fail-fast: true
+      matrix:
+        include:
+          - app: api
+            project_secret: VERCEL_API_PROJECT_ID
+          - app: web
+            project_secret: VERCEL_PROJECT_ID
     env:
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets[matrix.project_secret] }}
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
     steps:
       - uses: actions/checkout@v4
@@ -36,7 +46,7 @@ jobs:
         run: |
           for name in VERCEL_ORG_ID VERCEL_PROJECT_ID VERCEL_TOKEN; do
             if [ -z "${!name}" ]; then
-              echo "::error::Missing GitHub Actions secret: $name"
+              echo "::error::Missing GitHub Actions secret: ${name/VERCEL_PROJECT_ID/${{ matrix.project_secret }}}"
               exit 1
             fi
           done
@@ -54,4 +64,4 @@ jobs:
             exit 0
           fi
           vercel deploy --prebuilt --prod --yes --token="$VERCEL_TOKEN" > deployment-url.txt
-          printf 'Production deployment: %s\n' "$(cat deployment-url.txt)" >> "$GITHUB_STEP_SUMMARY"
+          printf '%s production deployment: %s\n' "${{ matrix.app }}" "$(cat deployment-url.txt)" >> "$GITHUB_STEP_SUMMARY"
