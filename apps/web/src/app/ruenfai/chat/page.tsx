@@ -76,7 +76,7 @@ export default function ChatPage() {
       ]);
       setReplying(false);
       replyTimer.current = null;
-    }, 1200);
+    }, 3000);
     if (!fromSuggestion) {
       setDraft("");
       input.current?.focus();
