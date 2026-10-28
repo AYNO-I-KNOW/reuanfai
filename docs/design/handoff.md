@@ -1,6 +1,6 @@
 # Design handoff — เรือนไฟ
 
-> บันทึก UI เพิ่มเติมวันที่ 28 ตุลาคม 2569: [onboarding, avatar, focus และมาตรฐานฟอร์ม](2026-10-28-ui-update.md) — สถานะ local workspace และข้อจำกัด QA ระบุในไฟล์
+> บันทึก UI เพิ่มเติมวันที่ 28 ตุลาคม 2569: [สรุปล่าสุด: onboarding, avatar, journal สุขภาพ, ชีต, ส่งออก และแชท](2026-10-28-ui-update.md) — สถานะ local workspace และข้อจำกัด QA ระบุในไฟล์
 
 > สถานะ: อัปเดต handoff รอบ 1 · 2026-10-05 · ตรวจโค้ดฐาน e0c7796 และร่าง handoff 518967c บน branch `thanid-design`
 > ไฟล์นี้ไม่ใช่ผล design review — review แยกที่ `docs/design-review/` ตาม `DESIGN-REVIEW.md` (ยังไม่มีโฟลเดอร์นี้)

@@ -1,8 +1,8 @@
 # ทบทวน UX บันทึกสุขภาพประจำวัน — 28 ตุลาคม 2569
 
-สถานะ: review/ข้อเสนอเพื่อหารือกับผู้ใช้และทีมคลินิก ยังไม่ได้ implement ฟิลด์สุขภาพ การแจ้งเตือน หรือการแชร์ตามรายการใหม่นี้ ไม่ใช่ developer-owned spec/ADR และไม่เปลี่ยน API/schema/rules engine
+สถานะล่าสุด: เอกสารนี้เป็นประวัติ review ก่อนทำ UI ไม่ใช่สถานะโค้ดปัจจุบัน ฟอร์มสุขภาพทำ frontend แล้ว ส่วนส่งออกเปลี่ยนเป็นเลือกวันเริ่ม–สิ้นสุด/ไฟล์ PDF และแจ้งสำเร็จจำลองเท่านั้น ไม่มีไฟล์จริง ดู [สรุปสถานะล่าสุดและข้อจำกัด](2026-10-28-ui-update.md) §16–18 ไม่ใช่ developer-owned spec/ADR และไม่เปลี่ยน API/schema/rules engine
 
-## ฐานปัจจุบันที่ตรวจจากโค้ด
+## ฐานเดิมที่ตรวจขณะเริ่ม review
 
 JournalForm มี mood5ตัว, optional symptoms4ตัว (พักผ่อนน้อย/เจ็บแผล/คัดตึงเต้านม/ปวดเมื่อย), body และบันทึกผ่าน JournalState (React state) Entry มี id/date/title/body/mood/symptoms เท่านั้น ยังไม่มี pain/lochia/temperature/wound/breast แบบ structured และไม่มี share report day/week/month/year ในหน้านี้ Reload ยังไม่รับรองความคงทนของบันทึก การเพิ่ม form UI ไม่ได้ทำให้เกิด backend integration หรือข้อมูลพร้อมใช้ทางคลินิกโดยอัตโนมัติ
 
@@ -87,4 +87,4 @@ Developer: approved structured contract, persistence/migrationของentryเ�
 นี่เป็นreviewข้อกำหนด ไม่ใช่การประเมินอาการของผู้ใช้ และไม่มีฟิลด์/การแชร์รายการใหม่ถูกimplementในรอบนี้
 # Implementation update
 
-The frontend implementation now follows this review. See section16 of [UI update](2026-10-28-ui-update.md) for final behavior, visual corrections, verification and demo limitations. Production persistence and clinical review remain follow-up work.
+The frontend implementation now follows this review. See the latest-state summary and sections16–18 of [UI update](2026-10-28-ui-update.md) for final behavior, visual corrections, verification and demo limitations. Production persistence and clinical review remain follow-up work.
