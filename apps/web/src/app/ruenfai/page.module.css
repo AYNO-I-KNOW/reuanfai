@@ -191,3 +191,14 @@
 
 /* The viewport wrapper must never scroll to follow autofocus during entry. */
 .medicineDialog{overflow:clip;}
+
+/* Service lifecycle: only actionable pills have a chevron. */
+.appointmentCard .appointmentTonepurple{background:#f0ebff;color:#5438bd}
+.appointmentCard .appointmentToneyellow{background:#fff4cc;color:#876514}
+.appointmentCard .appointmentTonegreen{background:#e5f5ee;color:#21745c}
+.appointmentCard .appointmentTonegray{background:#f0eef4;color:#625d70}
+.appointmentCard .appointmentStatusDescription{min-height:46px;overflow-wrap:anywhere;text-wrap:pretty}
+.appointmentCard .pill{white-space:normal;text-align:left}
+.appointmentDetailsCard{position:relative}
+.appointmentDetailsButton{position:absolute;inset:0;border:0;border-radius:24px;background:transparent;cursor:pointer}
+.appointmentDetailsButton:focus-visible{outline:2px solid #6549f7;outline-offset:3px}
