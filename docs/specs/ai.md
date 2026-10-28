@@ -80,8 +80,8 @@
 
 **Cache (ในหน่วยความจำ, 1 process)**: key = คำถามที่ normalize + `track` + `k` + `AI_MODEL` · คำตอบที่ผ่านการตรวจ 24 ชม. · `NOT_FOUND` 60 วินาที · สูงสุด 500 รายการ · error ไม่ cache · response ที่มาจาก cache มี `cached: true`
 
-**ข้อจำกัดการใช้งาน (ต่อ process)**: rate limit 5/นาที + 100/วัน ต่อ socket address · in-flight ไม่เกิน 4 · LLM ไม่เกิน 400 ครั้ง/วัน UTC (free tier 500 RPD) · timeout LLM 20 วินาที, Supabase 10 วินาที · เกิน → `rate_limited` 429
-- หลัง web proxy ทุกคำขอมาจาก socket address ของ web (127.0.0.1) จึงนับเป็นก้อนเดียว — ต้นแบบยอมรับ; ถ้ามี trusted proxy ต้องใช้ hop ขวาสุดของ `x-forwarded-for`
+**ข้อจำกัดการใช้งาน (ต่อ process)**: rate limit 5/นาที + 100/วัน ต่อผู้ใช้ (ดูข้อถัดไป) · in-flight ไม่เกิน 4 · LLM ไม่เกิน 400 ครั้ง/วัน UTC (free tier 500 RPD) · timeout LLM 20 วินาที, Supabase 10 วินาที · เกิน → `rate_limited` 429
+- key ผู้ใช้: peer เป็น loopback (web proxy, api bind 127.0.0.1) → hop ขวาสุดของ `x-forwarded-for` ที่ proxy ต่อท้าย · peer อื่น → socket address · hop ซ้ายผู้ใช้ปลอมได้จึงไม่ใช้ · ทดสอบแล้ว: คนเดียวครั้งที่ 6 ได้ 429, 6 IP ไม่โดน, ปลอม hop ซ้ายไม่หลุด
 
 **โมเดลปัจจุบัน**: `gemini-3.5-flash-lite` ผ่าน endpoint OpenAI-compatible ของ Gemini · สลับด้วย env (`AI_BASE_URL`, `AI_API_KEY`, `AI_MODEL`) ไม่ต้องแก้โค้ด · `AI_REASONING_EFFORT`: ว่างสำหรับ flash-lite (ไม่รับ `none`), `none` สำหรับ 3.6/3.8 (กัน thinking กิน `maxOutputTokens` จน JSON ขาด)
 

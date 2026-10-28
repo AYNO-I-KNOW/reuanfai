@@ -132,13 +132,21 @@ const ERROR_MESSAGE = {
 
 const tooManyRequests = { error: 'rate_limited' as const, message: 'too many requests, try again later' }
 
+// api binds 127.0.0.1, so a loopback peer is the web proxy (ADR-0013): every user shares that address →
+// use the right-most XFF hop, the one the proxy appended (left hops are client-controlled). Any other peer: socket address.
+const LOOPBACK = new Set(['127.0.0.1', '::1', '::ffff:127.0.0.1'])
+function clientKey(peer: string | undefined, xff: string | undefined): string {
+  const proxied = peer && LOOPBACK.has(peer) ? xff?.split(',').at(-1)?.trim() : undefined
+  return proxied || peer || 'unknown'
+}
+
 // TODO requireRole('mother','staff') — public + flag-gated until auth exists (src/index.ts)
 export const kb = new Hono().post(
   '/ask',
   async (c, next) => {
-    // key on the socket peer, never a client-sent header (x-forwarded-for is spoofable).
-    // behind a trusted proxy use only the right-most XFF hop appended by that proxy — not implemented (api binds 127.0.0.1, ADR-0013)
-    if (!rateLimit(getConnInfo(c).remote.address ?? 'unknown')) return c.json(tooManyRequests, 429)
+    if (!rateLimit(clientKey(getConnInfo(c).remote.address, c.req.header('x-forwarded-for')))) {
+      return c.json(tooManyRequests, 429)
+    }
     await next()
   },
   bodyLimit({

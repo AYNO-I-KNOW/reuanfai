@@ -138,7 +138,7 @@ docs/
 | dtam → ข้อมูล | ใช้ได้แค่ `agg_*` views, n<5 suppress |
 | api → LLM | ส่งเฉพาะข้อมูลรวมกลุ่ม / ข้อความที่ scrub แล้ว, ใช้ zero data retention |
 | KB: api → DB | `SUPABASE_SERVICE_ROLE_KEY` อยู่ใน env ของ api เท่านั้น (ingest ก็รันจาก api) · web ไม่แตะ `kb_*` (ADR-0004) |
-| KB: เครือข่าย | dev bind `127.0.0.1` เท่านั้น · เข้าถึงได้ทาง `/api/*` proxy ของ web (ADR-0013) · rate limit ใช้ socket address ไม่เชื่อ `x-forwarded-for` |
+| KB: เครือข่าย | dev bind `127.0.0.1` เท่านั้น · เข้าถึงได้ทาง `/api/*` proxy ของ web (ADR-0013) · rate limit ต่อผู้ใช้: peer เป็น loopback (= web proxy) → hop ขวาสุดของ `x-forwarded-for` ที่ proxy ต่อท้าย (hop ซ้ายผู้ใช้ปลอมได้) · peer อื่น → socket address |
 | KB: api → Gemini | ส่งได้เฉพาะคำถามจำลอง + chunk เอกสาร open license (ADR-0012, ADR-0017, SPEC Q28) · ยังไม่มี ZDR → ห้ามข้อมูลจริง |
 
 ## 6. ใครเห็นอะไร

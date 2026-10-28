@@ -52,7 +52,8 @@ as $$
     order by p.ord
     limit 20
   ),
-  scoped as not materialized (
+  -- materialized: กัน planner ใช้ HNSW แล้ว filter track ทีหลัง (ได้ 0 แถว — ดู 0004) ถ้าเพิ่ม index กลับมา
+  scoped as materialized (
     select c.id, c.text,
            c.embedding operator(extensions.<=>) query_embedding as dist
     from public.kb_chunks c
