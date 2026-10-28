@@ -1,0 +1,6 @@
+.resizable{position:relative;transition:height 280ms cubic-bezier(.22,1,.36,1),border-radius 280ms cubic-bezier(.22,1,.36,1),transform 220ms cubic-bezier(.22,1,.36,1)!important;max-height:calc(var(--sheet-available-height,100dvh) - 8px - env(safe-area-inset-top,0px))!important;overflow:clip!important;display:flex;flex-direction:column}
+.resizable> :last-child:not([data-sheet-footer]){min-height:0;flex:1;overscroll-behavior:contain}
+.handle{display:grid;place-items:center;flex:0 0 24px;align-self:center;width:64px;height:24px;min-height:24px;border:0;padding:0;background:transparent;touch-action:none;cursor:ns-resize}
+.handle span{width:36px;height:4px;border-radius:999px;background:#d0cadb}
+.handle:disabled{cursor:default}.handle:focus-visible{outline:2px solid #6549f7;outline-offset:0;border-radius:12px}
+@media(prefers-reduced-motion:reduce){.resizable{transition:none!important}}

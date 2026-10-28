@@ -11,3 +11,6 @@
 .pickerField{display:grid;gap:10px;margin-top:20px;color:#625d70;font-size:14px;font-weight:500}
 
 .notice{margin:12px 0 0;font-size:13px;line-height:21px;color:#625d70}.error{margin:0 0 12px;font-size:13px;line-height:21px;font-weight:600;color:#b3261e}
+.editPage .form label,.pickerField{gap:var(--rf-field-label-gap);margin-top:var(--rf-field-group-gap)}
+
+.editPage .form section{margin-bottom:var(--rf-space-8)}.editPage .form section h2{margin-bottom:var(--rf-space-6)}.editPage .form label:first-of-type{margin-top:0}
