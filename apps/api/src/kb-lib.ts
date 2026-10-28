@@ -54,7 +54,7 @@ export function chunkPage(markdown: string, maxChars = CHUNK_MAX_CHARS): string[
 }
 
 const STOPWORDS = new Set([
-  'ยา', 'มี', 'อะไร', 'ไหน', 'อย่างไร', 'ไหม', 'คือ', 'ของ', 'และ', 'หรือ', 'ที่', 'ใช้', 'ได้', 'ตัว', 'หลังคลอด', 'แม่',
+  'ยา', 'มี', 'อะไร', 'ไหน', 'อย่างไร', 'ไหม', 'คือ', 'ของ', 'และ', 'หรือ', 'ที่', 'ใช้', 'ได้', 'ใช้ได้', 'บ้าง', 'ตัว', 'หลังคลอด', 'แม่',
   'the', 'a', 'an', 'of', 'and', 'or', 'for', 'to', 'in', 'on', 'with', 'what', 'how', 'is', 'are', 'does', 'do', 'should',
 ])
 // Thai stopwords this long are cut out of the raw text first: the segmenter can split them mid-word
@@ -135,26 +135,34 @@ export function enrichCitations(citations: Citation[], sources: SourceInfo[]): E
 }
 
 // in-memory sliding-window limiter; one process only (prototype — move to shared store with requireRole)
-export function createRateLimiter(rules: { windowMs: number; max: number }[], now: () => number = Date.now) {
+// keys are capped (oldest-first eviction, like createAnswerCache) so a flood of distinct keys cannot grow the map
+export const MAX_LIMITER_KEYS = 10_000
+
+export function createRateLimiter(
+  rules: { windowMs: number; max: number }[],
+  { maxKeys = MAX_LIMITER_KEYS, now = Date.now }: { maxKeys?: number; now?: () => number } = {},
+) {
   const hits = new Map<string, number[]>()
   const longest = Math.max(...rules.map((r) => r.windowMs))
   return (key: string): boolean => {
     const t = now()
-    if (hits.size > 10_000) {
-      for (const [k, ts] of hits) if (t - ts[ts.length - 1]! >= longest) hits.delete(k)
-    }
     const recent = (hits.get(key) ?? []).filter((x) => t - x < longest)
     const allowed = rules.every((r) => recent.filter((x) => t - x < r.windowMs).length < r.max)
     if (allowed) recent.push(t)
+    hits.delete(key)
     hits.set(key, recent)
+    if (hits.size > maxKeys) hits.delete(hits.keys().next().value!)
     return allowed
   }
 }
 
-export const normalizeQuestion = (q: string): string => q.normalize('NFC').trim().replace(/\s+/g, ' ').toLowerCase()
+// Thai PDFs often encode ำ as ํ (+ tone mark) + า → ILIKE on "คำ"/"น้ำ" misses "คํา"/"นํ้า"; fold both stored text and questions
+export const foldThai = (text: string): string => text.replace(/ํ([่-๋]?)า/g, '$1ำ').normalize('NFC')
 
-export const answerCacheKey = (question: string, track: string | undefined, k: number): string =>
-  `${normalizeQuestion(question)}|${track ?? ''}|${k}`
+export const normalizeQuestion = (q: string): string => foldThai(q).trim().replace(/\s+/g, ' ').toLowerCase()
+
+export const answerCacheKey = (question: string, track: string | undefined, k: number, model: string): string =>
+  `${normalizeQuestion(question)}|${track ?? ''}|${k}|${model}`
 
 // in-memory LRU with TTL (Map keeps insertion order → first key is least recently used); one process only
 export function createAnswerCache<V>({
@@ -163,7 +171,7 @@ export function createAnswerCache<V>({
   now = Date.now,
 }: {
   max: number
-  ttlMs: number
+  ttlMs: number // default; set() may override per entry
   now?: () => number
 }) {
   const entries = new Map<string, { value: V; expires: number }>()
@@ -176,9 +184,9 @@ export function createAnswerCache<V>({
       entries.set(key, entry)
       return entry.value
     },
-    set(key: string, value: V): void {
+    set(key: string, value: V, entryTtlMs: number = ttlMs): void {
       entries.delete(key)
-      entries.set(key, { value, expires: now() + ttlMs })
+      entries.set(key, { value, expires: now() + entryTtlMs })
       if (entries.size > max) entries.delete(entries.keys().next().value!)
     },
   }

@@ -1,4 +1,5 @@
 import { Hono } from 'hono'
+import { getConnInfo } from '@hono/node-server/conninfo'
 import { bodyLimit } from 'hono/body-limit'
 import { generateText } from 'ai'
 import { z } from 'zod'
@@ -15,6 +16,7 @@ import {
   errLine,
   extractTerms,
   filterCitations,
+  foldThai,
   groupByPage,
 } from './kb-lib.js'
 
@@ -25,7 +27,30 @@ const rateLimit = createRateLimiter([
   { windowMs: 86_400_000, max: 100 },
 ])
 
-const answerCache = createAnswerCache<AnswerBody>({ max: 500, ttlMs: 86_400_000 })
+// only LLM-validated answers live long; NOT_FOUND is short so a re-ingest or fixed retrieval shows up soon
+const ANSWER_TTL_MS = 86_400_000
+const NOT_FOUND_TTL_MS = 60_000
+const answerCache = createAnswerCache<AnswerBody>({ max: 500, ttlMs: ANSWER_TTL_MS })
+
+// global caps (per process): in-flight embed+LLM work, and LLM calls per UTC day (Gemini free tier = 500 RPD)
+const MAX_IN_FLIGHT = 4
+const MAX_LLM_CALLS_PER_DAY = 400
+const LLM_TIMEOUT_MS = 20_000
+let inFlight = 0
+let budgetDay = ''
+let llmCallsToday = 0
+
+class LlmBudgetError extends Error {}
+
+function takeLlmCall() {
+  const day = new Date().toISOString().slice(0, 10)
+  if (day !== budgetDay) {
+    budgetDay = day
+    llmCallsToday = 0
+  }
+  if (llmCallsToday >= MAX_LLM_CALLS_PER_DAY) throw new LlmBudgetError('daily LLM call ceiling reached')
+  llmCallsToday++
+}
 
 const askBody = z.object({
   question: z.string().min(1).max(500),
@@ -34,7 +59,7 @@ const askBody = z.object({
 })
 
 const answerSchema = z.object({
-  answer: z.string(),
+  answer: z.string().trim().min(1),
   citations: z.array(z.object({ sourceId: z.string(), page: z.number().int() })),
 })
 
@@ -66,6 +91,7 @@ const SYSTEM = `คุณอธิบายเนื้อหาจากเอ�
 
 // provider may not support json_schema response_format → JSON is requested in the prompt and validated here
 function parseAnswer(text: string) {
+  if (text.trim() === NOT_FOUND) return { answer: NOT_FOUND, citations: [] }
   const start = text.indexOf('{')
   const end = text.lastIndexOf('}')
   if (start < 0 || end < start) return null
@@ -79,14 +105,20 @@ function parseAnswer(text: string) {
 
 async function askModel(prompt: string, attempts = 2) {
   for (let attempt = 1; attempt <= attempts; attempt++) {
-    const { text } = await generateText({
+    takeLlmCall()
+    const { text, finishReason } = await generateText({
       model: getChatModel(),
       // never pass `tools`: no web search/grounding — Gemini OpenAI-compat only searches when a google_search tool is passed
       instructions: SYSTEM,
       prompt,
       maxOutputTokens: MAX_OUTPUT_TOKENS,
       providerOptions: { llm: { reasoningEffort: getAskEnv().AI_REASONING_EFFORT } },
+      abortSignal: AbortSignal.timeout(LLM_TIMEOUT_MS),
     })
+    // truncated output (reasoning ate the budget) would fail again with the same budget → do not burn another call
+    if (finishReason === 'length') {
+      throw new Error('model output truncated (finishReason=length); raise MAX_OUTPUT_TOKENS or lower AI_REASONING_EFFORT')
+    }
     const answer = parseAnswer(text)
     if (answer) return answer
   }
@@ -98,15 +130,15 @@ const ERROR_MESSAGE = {
   ai_unavailable: 'AI service unavailable',
 } as const
 
-const clientIp = (header: string | undefined) => header?.split(',')[0]?.trim() || 'unknown'
+const tooManyRequests = { error: 'rate_limited' as const, message: 'too many requests, try again later' }
 
 // TODO requireRole('mother','staff') — public + flag-gated until auth exists (src/index.ts)
 export const kb = new Hono().post(
   '/ask',
   async (c, next) => {
-    if (!rateLimit(clientIp(c.req.header('x-forwarded-for')))) {
-      return c.json({ error: 'rate_limited' as const, message: 'too many requests, try again later' }, 429)
-    }
+    // key on the socket peer, never a client-sent header (x-forwarded-for is spoofable).
+    // behind a trusted proxy use only the right-most XFF hop appended by that proxy — not implemented (api binds 127.0.0.1, ADR-0013)
+    if (!rateLimit(getConnInfo(c).remote.address ?? 'unknown')) return c.json(tooManyRequests, 429)
     await next()
   },
   bodyLimit({
@@ -116,20 +148,24 @@ export const kb = new Hono().post(
   async (c) => {
     const body = askBody.safeParse(await c.req.json().catch(() => null))
     if (!body.success) return c.json({ error: 'validation' as const, message: 'invalid request body' }, 422)
-    // < > stripped so the question cannot open/close prompt tags
-    const question = body.data.question.replace(/[<>]/g, '').trim()
+    // < > stripped so the question cannot open/close prompt tags; foldThai matches how chunks were stored
+    const question = foldThai(body.data.question.replace(/[<>]/g, '')).trim()
     if (!question) return c.json({ error: 'validation' as const, message: 'invalid request body' }, 422)
     const { track, k } = body.data
-    const cacheKey = answerCacheKey(question, track, k)
+    const { AI_MODEL } = getAskEnv()
+    const cacheKey = answerCacheKey(question, track, k, AI_MODEL)
     const hit = answerCache.get(cacheKey)
     if (hit) return c.json({ ...hit, cached: true })
-    // only successful responses (incl. NOT_FOUND) are cached; errors fall through to the catch
-    const ok = (result: AnswerBody) => {
-      answerCache.set(cacheKey, result)
+    if (inFlight >= MAX_IN_FLIGHT) return c.json(tooManyRequests, 429)
+    // only successful responses are cached (answers 24h, NOT_FOUND 60s); errors fall through to the catch
+    const ok = (result: AnswerBody, ttlMs: number) => {
+      answerCache.set(cacheKey, result, ttlMs)
       return c.json({ ...result, cached: false })
     }
-    const notFound = () => ok({ label: LABEL, answer: NOT_FOUND, citations: [], model: getAskEnv().AI_MODEL })
+    const notFound = () =>
+      ok({ label: LABEL, answer: NOT_FOUND, citations: [], model: AI_MODEL }, NOT_FOUND_TTL_MS)
 
+    inFlight++
     let failure: keyof typeof ERROR_MESSAGE = 'ai_unavailable'
     try {
       const queryEmbedding = await embedQuestion(question)
@@ -151,7 +187,7 @@ export const kb = new Hono().post(
       const context = chunks
         .map(
           (x) =>
-            `<chunk sourceId="${x.source_id}" page="${x.page}">\n${x.text.replaceAll('</chunk', '&lt;/chunk')}\n</chunk>`,
+            `<chunk sourceId="${x.source_id.replaceAll('"', '&quot;')}" page="${x.page}">\n${x.text.replaceAll('</chunk', '&lt;/chunk')}\n</chunk>`,
         )
         .join('\n')
       failure = 'ai_unavailable'
@@ -166,15 +202,15 @@ export const kb = new Hono().post(
         .select('id, apa, url, license')
         .in('id', [...new Set(valid.map((x) => x.sourceId))])
       if (srcError) throw srcError
-      return ok({
-        label: LABEL,
-        answer: output.answer,
-        citations: enrichCitations(valid, sourceRows.parse(sources ?? [])),
-        model: getAskEnv().AI_MODEL,
-      })
+      const citations = enrichCitations(valid, sourceRows.parse(sources ?? []))
+      if (!citations.length) return notFound()
+      return ok({ label: LABEL, answer: output.answer, citations, model: AI_MODEL }, ANSWER_TTL_MS)
     } catch (err) {
       console.error(`kb/ask ${failure}: ${errLine(err)}`)
+      if (err instanceof LlmBudgetError) return c.json(tooManyRequests, 429)
       return c.json({ error: failure, message: ERROR_MESSAGE[failure] }, 502)
+    } finally {
+      inFlight--
     }
   },
 )

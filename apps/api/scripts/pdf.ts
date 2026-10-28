@@ -1,6 +1,7 @@
 // poppler wrappers; execFile (no shell) so paths are never interpreted
 import { execFile } from 'node:child_process'
 import { promisify } from 'node:util'
+import { foldThai } from '../src/kb-lib.js'
 
 const run = promisify(execFile)
 const PDF_MAX_BUFFER = 16 * 1024 * 1024
@@ -10,12 +11,7 @@ export async function extractPage(pdf: string, page: number) {
     encoding: 'utf8',
     maxBuffer: PDF_MAX_BUFFER,
   })
-  // Thai PDFs often encode ำ as ํ (+ tone mark) + า → ILIKE on "คำ"/"น้ำ" misses "คํา"/"นํ้า"
-  return stdout
-    .replaceAll('\f', '')
-    .replace(/ํ([่-๋]?)า/g, '$1ำ')
-    .normalize('NFC')
-    .trim()
+  return foldThai(stdout.replaceAll('\f', '')).trim()
 }
 
 export async function pageCount(pdf: string) {

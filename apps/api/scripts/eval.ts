@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url'
 import { z } from 'zod'
 import { getIngestEnv } from '../src/env.js'
 import { embedQuestion, getSupabase } from '../src/kb-clients.js'
-import { MIN_SIMILARITY, RETRIEVE_CHUNKS, bestSimilarity, extractTerms, groupByPage } from '../src/kb-lib.js'
+import { MIN_SIMILARITY, RETRIEVE_CHUNKS, bestSimilarity, extractTerms, foldThai, groupByPage } from '../src/kb-lib.js'
 
 const TOP_K = 5
 const EVAL_FILE = fileURLToPath(new URL('../../../knowledge/eval.json', import.meta.url))
@@ -44,12 +44,13 @@ let minTop1 = Infinity
 const belowGate: string[] = []
 const bySource = new Map<string, { hit: number; total: number }>()
 for (const [i, c] of cases.entries()) {
-  const query_embedding = await embedQuestion(c.question)
+  const question = foldThai(c.question)
+  const query_embedding = await embedQuestion(question)
   const { data, error } = dense
     ? await supabase.rpc('match_kb_chunks', { query_embedding, k: RETRIEVE_CHUNKS, filter_track: c.track ?? null })
     : await supabase.rpc('match_kb_chunks_hybrid', {
         query_embedding,
-        terms: extractTerms(c.question),
+        terms: extractTerms(question),
         k: RETRIEVE_CHUNKS,
         filter_track: c.track ?? null,
       })

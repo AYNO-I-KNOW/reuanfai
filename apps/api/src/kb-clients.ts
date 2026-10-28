@@ -1,12 +1,21 @@
 import { createClient } from '@supabase/supabase-js'
 import { createOpenAICompatible } from '@ai-sdk/openai-compatible'
-import { pipeline } from '@huggingface/transformers'
 import { getAskEnv, getIngestEnv } from './env.js'
 
 // lazy: /health and the rest of the api must work without KB env vars
+const SUPABASE_TIMEOUT_MS = 10_000
 const createSupabase = () =>
   createClient(getIngestEnv().SUPABASE_URL, getIngestEnv().SUPABASE_SERVICE_ROLE_KEY, {
     auth: { persistSession: false },
+    global: {
+      fetch: (input, init) =>
+        fetch(input, {
+          ...init,
+          signal: init?.signal
+            ? AbortSignal.any([init.signal, AbortSignal.timeout(SUPABASE_TIMEOUT_MS)])
+            : AbortSignal.timeout(SUPABASE_TIMEOUT_MS),
+        }),
+    },
   })
 let supabaseClient: ReturnType<typeof createSupabase> | undefined
 export const getSupabase = () => (supabaseClient ??= createSupabase())
@@ -21,8 +30,17 @@ export const getChatModel = () => {
 // kb_chunks.embedding is vector(768); multilingual-e5-base is 768-dim
 const EMBEDDING_DIMS = 768
 let extractor: ReturnType<typeof loadExtractor> | undefined
-const loadExtractor = () => pipeline('feature-extraction', getIngestEnv().AI_EMBEDDING_MODEL)
-const getExtractor = () => (extractor ??= loadExtractor())
+// dynamic import: loading onnx at boot would slow /health and the non-KB api
+const loadExtractor = async () => {
+  const { pipeline } = await import('@huggingface/transformers')
+  return pipeline('feature-extraction', getIngestEnv().AI_EMBEDDING_MODEL)
+}
+// a rejected load is not memoized, so the next request retries
+const getExtractor = () =>
+  (extractor ??= loadExtractor().catch((err) => {
+    extractor = undefined
+    throw err
+  }))
 
 // e5 needs a prefix: "passage: " for stored text, "query: " for questions
 async function embed(prefix: 'passage' | 'query', values: string[]): Promise<number[][]> {

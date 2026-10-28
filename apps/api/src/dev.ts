@@ -14,7 +14,8 @@ if (process.env.KB_ASK_ENABLED === 'true') {
   }
 }
 
-serve({ fetch: app.fetch, port: 8787 }, (i) => console.log(`api http://localhost:${i.port}`))
+// loopback only: the web /api rewrite is the sole caller (ADR-0013)
+serve({ fetch: app.fetch, port: 8787, hostname: '127.0.0.1' }, (i) => console.log(`api http://127.0.0.1:${i.port}`))
 
 if (process.env.KB_ASK_ENABLED === 'true') {
   warmupEmbeddings().catch((err) => console.error(`kb warmup failed: ${errLine(err)}`))

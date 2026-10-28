@@ -100,7 +100,7 @@ for (let i = 0; i < rows.length; i += EMBED_BATCH) {
   console.log(`embedded ${vectors.length}/${rows.length}`)
 }
 
-// each batch is its own transaction: a mid-run failure leaves a partial source — rerun the ingest to fix it
+// each batch is its own transaction: a failure after the first batch empties the source (fail closed) — rerun the ingest to fix it
 // (the first batch always deletes the old rows, so a rerun never duplicates)
 for (let i = 0; i < rows.length; i += INSERT_BATCH) {
   const { error } = await supabase.rpc('kb_replace_source_chunks', {
@@ -108,7 +108,18 @@ for (let i = 0; i < rows.length; i += INSERT_BATCH) {
     p_rows: rows.slice(i, i + INSERT_BATCH).map((r, j) => ({ ...r, embedding: JSON.stringify(vectors[i + j]) })),
     p_append: i > 0,
   })
-  if (error) fail(`kb_replace_source_chunks (rows ${i}-${i + INSERT_BATCH})`, error)
+  if (error) {
+    // fail closed: after the first delete a partial source would be served as if complete → empty it
+    if (i > 0) {
+      const { error: clearError } = await supabase.rpc('kb_replace_source_chunks', {
+        p_source_id: source.id,
+        p_rows: [],
+        p_append: false,
+      })
+      if (clearError) console.error(`could not clear partial ${source.id}: ${clearError.message}`)
+    }
+    fail(`kb_replace_source_chunks (rows ${i}-${i + INSERT_BATCH})`, error)
+  }
   console.log(`inserted ${Math.min(i + INSERT_BATCH, rows.length)}/${rows.length}`)
 }
 console.log(`replaced ${rows.length} chunks for ${source.id}`)
