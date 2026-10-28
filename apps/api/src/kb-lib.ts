@@ -105,6 +105,15 @@ export function groupByPage<T extends RetrievedChunk>(chunks: T[], k: number): R
   return [...pages.values()]
 }
 
+// relevance gate: hybrid rows carry dense similarity (1 - cosine), so the best one says how close the KB is to the question.
+// Calibrated on e5 + eval.json: in-KB questions top-1 min 0.836; off-topic below the bar: nuclear bomb 0.808, bitcoin 0.797,
+// football 0.748, python code 0.811, car engine 0.800. Some off-topic still pass (tom yum 0.850, weather 0.838) —
+// the LLM NOT_FOUND answer + citation filter catch those. Re-calibrate if the embedding model or KB changes.
+export const MIN_SIMILARITY = 0.82
+
+export const bestSimilarity = (rows: { similarity: number }[]): number =>
+  rows.reduce((best, r) => Math.max(best, r.similarity), -Infinity)
+
 // only checks that (sourceId, page) was among the retrieved chunks — it does NOT verify the answer text is supported by them
 export function filterCitations(citations: Citation[], chunks: RetrievedChunk[]): Citation[] {
   const valid = new Set(chunks.map((c) => `${c.source_id}#${c.page}`))
@@ -139,6 +148,39 @@ export function createRateLimiter(rules: { windowMs: number; max: number }[], no
     if (allowed) recent.push(t)
     hits.set(key, recent)
     return allowed
+  }
+}
+
+export const normalizeQuestion = (q: string): string => q.normalize('NFC').trim().replace(/\s+/g, ' ').toLowerCase()
+
+export const answerCacheKey = (question: string, track: string | undefined, k: number): string =>
+  `${normalizeQuestion(question)}|${track ?? ''}|${k}`
+
+// in-memory LRU with TTL (Map keeps insertion order → first key is least recently used); one process only
+export function createAnswerCache<V>({
+  max,
+  ttlMs,
+  now = Date.now,
+}: {
+  max: number
+  ttlMs: number
+  now?: () => number
+}) {
+  const entries = new Map<string, { value: V; expires: number }>()
+  return {
+    get(key: string): V | undefined {
+      const entry = entries.get(key)
+      if (!entry) return undefined
+      entries.delete(key)
+      if (entry.expires <= now()) return undefined
+      entries.set(key, entry)
+      return entry.value
+    },
+    set(key: string, value: V): void {
+      entries.delete(key)
+      entries.set(key, { value, expires: now() + ttlMs })
+      if (entries.size > max) entries.delete(entries.keys().next().value!)
+    },
   }
 }
 

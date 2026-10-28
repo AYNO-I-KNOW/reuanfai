@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url'
 import { z } from 'zod'
 import { getIngestEnv } from '../src/env.js'
 import { embedQuestion, getSupabase } from '../src/kb-clients.js'
-import { RETRIEVE_CHUNKS, extractTerms, groupByPage } from '../src/kb-lib.js'
+import { MIN_SIMILARITY, RETRIEVE_CHUNKS, bestSimilarity, extractTerms, groupByPage } from '../src/kb-lib.js'
 
 const TOP_K = 5
 const EVAL_FILE = fileURLToPath(new URL('../../../knowledge/eval.json', import.meta.url))
@@ -18,7 +18,9 @@ const evalSchema = z.array(
     expected: z.array(z.object({ sourceId: z.string(), page: z.number().int() })).min(1),
   }),
 )
-const rowSchema = z.array(z.object({ source_id: z.string(), page: z.number().int(), text: z.string() }))
+const rowSchema = z.array(
+  z.object({ source_id: z.string(), page: z.number().int(), text: z.string(), similarity: z.number() }),
+)
 
 const args = process.argv.slice(2)
 const dense = args.includes('--dense')
@@ -38,6 +40,8 @@ const supabase = getSupabase()
 console.log(`mode: ${dense ? 'dense (match_kb_chunks)' : 'hybrid (match_kb_chunks_hybrid)'}`)
 
 let hits = 0
+let minTop1 = Infinity
+const belowGate: string[] = []
 const bySource = new Map<string, { hit: number; total: number }>()
 for (const [i, c] of cases.entries()) {
   const query_embedding = await embedQuestion(c.question)
@@ -50,7 +54,11 @@ for (const [i, c] of cases.entries()) {
         filter_track: c.track ?? null,
       })
   if (error) throw new Error(`rpc failed: ${error.message}`)
-  const got = groupByPage(rowSchema.parse(data ?? []), TOP_K)
+  const rows = rowSchema.parse(data ?? [])
+  const top1 = bestSimilarity(rows)
+  minTop1 = Math.min(minTop1, top1)
+  if (top1 < MIN_SIMILARITY) belowGate.push(`${i + 1} (${top1.toFixed(3)}) ${c.question}`)
+  const got = groupByPage(rows, TOP_K)
   const rank = got.findIndex((g) => c.expected.some((e) => e.sourceId === g.source_id && e.page === g.page))
   const hit = rank >= 0
   if (hit) hits++
@@ -63,3 +71,8 @@ for (const [i, c] of cases.entries()) {
 console.log('')
 for (const [source, s] of bySource) console.log(`${source}: ${s.hit}/${s.total}`)
 console.log(`hit@${TOP_K}: ${hits}/${cases.length} (${Math.round((hits / cases.length) * 100)}%)`)
+console.log(`min top-1 similarity: ${minTop1.toFixed(3)} (gate MIN_SIMILARITY ${MIN_SIMILARITY})`)
+if (belowGate.length) {
+  console.warn(`WARN: ${belowGate.length} in-KB case(s) below MIN_SIMILARITY would be answered NOT_FOUND:`)
+  for (const b of belowGate) console.warn(`  ${b}`)
+}

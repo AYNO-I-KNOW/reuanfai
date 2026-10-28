@@ -39,3 +39,8 @@ export async function embedQuestion(question: string) {
 }
 
 export const embedDocuments = (values: string[]) => embed('passage', values)
+
+// first embed pays the model load (~3s); do it at startup so the first user request does not
+export const warmupEmbeddings = async () => {
+  await embedQuestion('warmup')
+}
