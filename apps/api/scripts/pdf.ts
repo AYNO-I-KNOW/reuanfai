@@ -10,7 +10,12 @@ export async function extractPage(pdf: string, page: number) {
     encoding: 'utf8',
     maxBuffer: PDF_MAX_BUFFER,
   })
-  return stdout.replaceAll('\f', '').trim()
+  // Thai PDFs often encode ำ as ํ (+ tone mark) + า → ILIKE on "คำ"/"น้ำ" misses "คํา"/"นํ้า"
+  return stdout
+    .replaceAll('\f', '')
+    .replace(/ํ([่-๋]?)า/g, '$1ำ')
+    .normalize('NFC')
+    .trim()
 }
 
 export async function pageCount(pdf: string) {
