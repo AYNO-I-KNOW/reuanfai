@@ -7,12 +7,15 @@ import s from "./chat.module.css";
 import ThinkingIndicator,{MIN_THINKING_MS} from "./ThinkingIndicator";
 import EmergencyAction from "../EmergencyAction";
 import {useTabNavigation} from "../TabMotion";
+import {getServiceInfo,type ServiceInfo} from '../services/service-info';
 import {useChatTopics} from "../chat-topics";
 type Message = { text: string; user: boolean };
 
 export default function ChatPage() {
   const navigate=useTabNavigation();
-  const topics=useChatTopics();
+  const defaults=useChatTopics();
+  const [service,setService]=useState<ServiceInfo|null>(null);
+  const topics=service?service.faq.map(item=>item.question):defaults;
   const topicDrag=useRef<{x:number;left:number}|null>(null),topicMoved=useRef(false);
   const [selectedTopic,setSelectedTopic]=useState("");
   const chatRoot=useRef<HTMLElement>(null);
@@ -30,17 +33,23 @@ export default function ChatPage() {
     };
   }, []);
   useEffect(()=>{const viewport=window.visualViewport;if(!viewport)return;const resize=()=>{if(viewport.scale===1)chatRoot.current?.style.setProperty('--chat-height',`${viewport.height}px`)};resize();viewport.addEventListener('resize',resize);return()=>viewport.removeEventListener('resize',resize)},[]);
-  const [returnTo, setReturnTo] = useState("/ruenfai");
-  useEffect(() => {
-    const from = new URLSearchParams(window.location.search).get("from");
-    if (["/ruenfai", "/ruenfai/appointments", "/ruenfai/medicines", "/ruenfai/journal"].includes(from ?? "")) {
-      const timer = setTimeout(() => setReturnTo(from!), 0);
-      return () => clearTimeout(timer);
-    }
-  }, []);
   const [messages, setMessages] = useState<Message[]>([
     { text: "สวัสดีค่ะ วันนี้คุณแม่อยากปรึกษาเรื่องอะไร เล่าให้ฟังได้เลยนะคะ", user: false },
   ]);
+  const [returnTo, setReturnTo] = useState("/ruenfai");
+  useEffect(() => {
+    const params=new URLSearchParams(window.location.search);
+    const from = params.get("from");
+    const topic=getServiceInfo(params.get('service'));
+    const contextTimer=setTimeout(()=>{
+      if(topic){setService(topic);setMessages([{text:`กำลังอ่านเรื่อง${topic.name}อยู่ใช่ไหมคะ เลือกคำถามด้านล่าง หรือพิมพ์เรื่องที่อยากทราบเพิ่มเติมได้ค่ะ`,user:false}]);}
+    },0);
+    if (["/ruenfai", "/ruenfai/appointments", "/ruenfai/medicines", "/ruenfai/journal"].includes(from ?? "")) {
+      const timer = setTimeout(() => setReturnTo(from!+(topic&&from==='/ruenfai/appointments'?`?service=${topic.id}`:'')), 0);
+      return () => {clearTimeout(timer);clearTimeout(contextTimer);};
+    }
+    return()=>clearTimeout(contextTimer);
+  }, []);
   const [draft, setDraft] = useState("");
   useEffect(()=>{const question=new URLSearchParams(window.location.search).get("question");if(question){const timer=setTimeout(()=>(setDraft(question.slice(0,500)),setSelectedTopic(question.slice(0,500))),0);return()=>clearTimeout(timer)}},[]);
   const [replying, setReplying] = useState(false);
@@ -70,7 +79,7 @@ export default function ChatPage() {
     setMessages((previous) => [...previous, { text: trimmed, user: true }]);
     setReplying(true);
     // Hold an already-ready demo result until the presentation minimum elapses.
-    const response:Message={text:"เล่าเพิ่มเติมได้เลยค่ะ คุณแม่อยากให้ช่วยเรื่องไหนเป็นพิเศษคะ",user:false};
+    const response:Message={text:service?(service.faq.find(item=>item.question===trimmed)?.answer??`สำหรับ${service.name} ${service.intro} หากต้องการทราบความเหมาะสมกับร่างกายหรือวันเริ่มบริการ ควรสอบถามผู้ให้บริการที่ประเมินคุณแม่ค่ะ`):"เล่าเพิ่มเติมได้เลยค่ะ คุณแม่อยากให้ช่วยเรื่องไหนเป็นพิเศษคะ",user:false};
     replyTimer.current = setTimeout(() => {
       setMessages((previous) => [
         ...previous,

@@ -29,3 +29,7 @@
 
 /* Release the entrance keyframe so exit transitions can take over. */
 .invitation{animation-fill-mode:backwards}
+
+/* Single assistant host remains stationary while a service sheet animates. */
+.floatingLayer{position:fixed;z-index:21;bottom:0;left:50%;translate:-50% 0;width:100%;max-width:600px;height:var(--floating-nav-height,78px);pointer-events:none;font-family:'ReuanFai UI',sans-serif}
+.floatingLayer .chat{cursor:pointer}
