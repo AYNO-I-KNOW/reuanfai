@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import {useEffect,useRef,useState} from "react";
 import s from "./chat.module.css";
-import ThinkingIndicator from "./ThinkingIndicator";
+import ThinkingIndicator,{MIN_THINKING_MS} from "./ThinkingIndicator";
 import EmergencyAction from "../EmergencyAction";
 import {useTabNavigation} from "../TabMotion";
 import {useChatTopics} from "../chat-topics";
@@ -69,14 +69,16 @@ export default function ChatPage() {
     following.current = true;
     setMessages((previous) => [...previous, { text: trimmed, user: true }]);
     setReplying(true);
+    // Hold an already-ready demo result until the presentation minimum elapses.
+    const response:Message={text:"เล่าเพิ่มเติมได้เลยค่ะ คุณแม่อยากให้ช่วยเรื่องไหนเป็นพิเศษคะ",user:false};
     replyTimer.current = setTimeout(() => {
       setMessages((previous) => [
         ...previous,
-        { text: "เล่าเพิ่มเติมได้เลยค่ะ คุณแม่อยากให้ช่วยเรื่องไหนเป็นพิเศษคะ", user: false },
+        response,
       ]);
       setReplying(false);
       replyTimer.current = null;
-    }, 3000);
+    }, MIN_THINKING_MS);
     if (!fromSuggestion) {
       setDraft("");
       input.current?.focus();
