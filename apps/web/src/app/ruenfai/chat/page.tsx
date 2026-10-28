@@ -95,7 +95,7 @@ export default function ChatPage() {
             alt=""
           />
           <div className={s["ubot-identity"]}>
-            <h1>{'ผู้ช่วยส่วนตัว'}</h1>
+            <h1>{'น้องเรือนไฟ'}</h1>
             <Image className={s["ubot-verified"]} src="/images/ruenfai/chat-verified.svg" width={18} height={18} alt=""/>
           </div>
         </div>
