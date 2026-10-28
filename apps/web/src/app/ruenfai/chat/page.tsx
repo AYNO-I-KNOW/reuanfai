@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import {useEffect,useRef,useState} from "react";
 import s from "./chat.module.css";
+import ThinkingIndicator from "./ThinkingIndicator";
 import EmergencyAction from "../EmergencyAction";
 import {useTabNavigation} from "../TabMotion";
 import {useChatTopics} from "../chat-topics";
@@ -121,17 +122,7 @@ export default function ChatPage() {
             {message.text}
           </div>
         ))}
-        {replying && (
-          <div
-            className={`${s["ubot-bubble"]} ${s["ubot-typing"]}`}
-            role="status"
-            aria-label={'ผู้ช่วยกำลังพิมพ์'}
-          >
-            <span aria-hidden="true" />
-            <span aria-hidden="true" />
-            <span aria-hidden="true" />
-          </div>
-        )}
+        {replying && <ThinkingIndicator/>}
       </div>
       <footer className={s["ubot-composer"]}>
         <div
@@ -149,7 +140,7 @@ export default function ChatPage() {
               key={question}
               type="button"
               disabled={replying}
-              onClick={() => {setDraft(question);input.current?.focus();}}
+              onClick={() => send(question,true)}
             >
               {question}
             </button>
