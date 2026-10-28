@@ -1,4 +1,4 @@
-import { Hono } from 'hono'
+import { Hono, type Context } from 'hono'
 import { getConnInfo } from '@hono/node-server/conninfo'
 import { bodyLimit } from 'hono/body-limit'
 import { APICallError, generateText } from 'ai'
@@ -216,17 +216,27 @@ const tooManyRequests = { error: 'rate_limited' as const, message: 'too many req
 
 // api binds 127.0.0.1, so a loopback peer is the web proxy (ADR-0013): every user shares that address →
 // use the right-most XFF hop, the one the proxy appended (left hops are client-controlled). Any other peer: socket address.
+// No socket (Vercel function): the platform sets XFF / x-real-ip, same right-most rule.
 const LOOPBACK = new Set(['127.0.0.1', '::1', '::ffff:127.0.0.1'])
-function clientKey(peer: string | undefined, xff: string | undefined): string {
-  const proxied = peer && LOOPBACK.has(peer) ? xff?.split(',').at(-1)?.trim() : undefined
+function clientKey(peer: string | undefined, xff: string | undefined, realIp: string | undefined): string {
+  const proxied = !peer || LOOPBACK.has(peer) ? xff?.split(',').at(-1)?.trim() || realIp?.trim() : undefined
   return proxied || peer || 'unknown'
+}
+
+// getConnInfo reads the Node socket (c.env.incoming), absent outside @hono/node-server
+function peerAddress(c: Context): string | undefined {
+  try {
+    return getConnInfo(c).remote.address
+  } catch {
+    return undefined
+  }
 }
 
 // TODO requireRole('mother','staff') — public + flag-gated until auth exists (src/index.ts)
 export const kb = new Hono().post(
   '/ask',
   async (c, next) => {
-    if (!rateLimit(clientKey(getConnInfo(c).remote.address, c.req.header('x-forwarded-for')))) {
+    if (!rateLimit(clientKey(peerAddress(c), c.req.header('x-forwarded-for'), c.req.header('x-real-ip')))) {
       return c.json(tooManyRequests, 429)
     }
     await next()

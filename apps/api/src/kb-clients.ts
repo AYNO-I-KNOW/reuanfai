@@ -1,4 +1,3 @@
-import { readFile } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
 import { createClient } from '@supabase/supabase-js'
 import { createOpenAICompatible } from '@ai-sdk/openai-compatible'
@@ -6,6 +5,9 @@ import { embedMany } from 'ai'
 import { z } from 'zod'
 import { getAskEnv, getIngestEnv } from './env.js'
 import { missingTopicSuggestions } from './kb-lib.js'
+// static JSON imports (not readFile) so the Vercel bundler traces them into the function
+import suggestionsJson from '../../../knowledge/suggestions.json' with { type: 'json' }
+import suggestionEmbeddingsJson from '../../../knowledge/suggestions.embeddings.json' with { type: 'json' }
 
 // lazy: /health and the rest of the api must work without KB env vars
 const SUPABASE_TIMEOUT_MS = 10_000
@@ -75,10 +77,10 @@ export const suggestionEmbeddings = z.object({
 })
 let suggestions: Promise<{ text: string; vec: number[] }[]> | undefined
 const loadSuggestions = async () => {
-  const texts = suggestionList.parse(JSON.parse(await readFile(SUGGESTIONS_FILE, 'utf8')))
+  const texts = suggestionList.parse(suggestionsJson)
   const missing = missingTopicSuggestions(texts)
   if (missing.length) console.warn(`kb topic suggestions not in suggestions.json: ${missing.join(' | ')}`)
-  const file = suggestionEmbeddings.parse(JSON.parse(await readFile(SUGGESTIONS_EMBEDDINGS_FILE, 'utf8')))
+  const file = suggestionEmbeddings.parse(suggestionEmbeddingsJson)
   const model = getIngestEnv().AI_EMBEDDING_MODEL
   const stale =
     file.model !== model ||
