@@ -4,7 +4,7 @@ import { generateText } from 'ai'
 import { z } from 'zod'
 import { getAskEnv } from './env.js'
 import { embedQuestion, getChatModel, getSupabase } from './kb-clients.js'
-import { createRateLimiter, enrichCitations, errLine, extractTerms, filterCitations } from './kb-lib.js'
+import { RETRIEVE_CHUNKS, createRateLimiter, enrichCitations, errLine, extractTerms, filterCitations, groupByPage } from './kb-lib.js'
 
 const MAX_BODY_BYTES = 4096
 const MAX_OUTPUT_TOKENS = 800
@@ -106,11 +106,11 @@ export const kb = new Hono().post(
       const { data, error } = await supabase.rpc('match_kb_chunks_hybrid', {
         query_embedding: queryEmbedding,
         terms: extractTerms(question),
-        k,
+        k: RETRIEVE_CHUNKS,
         filter_track: track ?? null,
       })
       if (error) throw error
-      const chunks = chunkRows.parse(data ?? [])
+      const chunks = groupByPage(chunkRows.parse(data ?? []), k)
       if (!chunks.length) return c.json({ label: LABEL, answer: NOT_FOUND, citations: [], model: getAskEnv().AI_MODEL })
 
       const context = chunks

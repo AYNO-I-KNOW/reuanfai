@@ -1,12 +1,12 @@
 // usage: pnpm --filter @reuanfai/api eval [--dense]
-// retrieval-only eval (no LLM): embed question -> RPC -> hit@5 against knowledge/eval.json
+// retrieval-only eval (no LLM): embed question -> RPC -> group by page (same as /kb/ask) -> hit@5 against knowledge/eval.json
 // default = match_kb_chunks_hybrid; --dense = match_kb_chunks
 import { readFile } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
 import { z } from 'zod'
 import { getIngestEnv } from '../src/env.js'
 import { embedQuestion, getSupabase } from '../src/kb-clients.js'
-import { extractTerms } from '../src/kb-lib.js'
+import { RETRIEVE_CHUNKS, extractTerms, groupByPage } from '../src/kb-lib.js'
 
 const TOP_K = 5
 const EVAL_FILE = fileURLToPath(new URL('../../../knowledge/eval.json', import.meta.url))
@@ -18,7 +18,7 @@ const evalSchema = z.array(
     expected: z.array(z.object({ sourceId: z.string(), page: z.number().int() })).min(1),
   }),
 )
-const rowSchema = z.array(z.object({ source_id: z.string(), page: z.number().int() }))
+const rowSchema = z.array(z.object({ source_id: z.string(), page: z.number().int(), text: z.string() }))
 
 const args = process.argv.slice(2)
 const dense = args.includes('--dense')
@@ -42,15 +42,15 @@ const bySource = new Map<string, { hit: number; total: number }>()
 for (const [i, c] of cases.entries()) {
   const query_embedding = await embedQuestion(c.question)
   const { data, error } = dense
-    ? await supabase.rpc('match_kb_chunks', { query_embedding, k: TOP_K, filter_track: c.track ?? null })
+    ? await supabase.rpc('match_kb_chunks', { query_embedding, k: RETRIEVE_CHUNKS, filter_track: c.track ?? null })
     : await supabase.rpc('match_kb_chunks_hybrid', {
         query_embedding,
         terms: extractTerms(c.question),
-        k: TOP_K,
+        k: RETRIEVE_CHUNKS,
         filter_track: c.track ?? null,
       })
   if (error) throw new Error(`rpc failed: ${error.message}`)
-  const got = rowSchema.parse(data ?? [])
+  const got = groupByPage(rowSchema.parse(data ?? []), TOP_K)
   const rank = got.findIndex((g) => c.expected.some((e) => e.sourceId === g.source_id && e.page === g.page))
   const hit = rank >= 0
   if (hit) hits++

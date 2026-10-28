@@ -91,6 +91,20 @@ export function extractTerms(question: string): string[] {
   return [...new Set(ordered)].slice(0, MAX_TERMS)
 }
 
+// RPC returns chunks; several from one page waste top-k slots → merge them (rank order kept) and keep k pages
+export const RETRIEVE_CHUNKS = 20
+
+export function groupByPage<T extends RetrievedChunk>(chunks: T[], k: number): RetrievedChunk[] {
+  const pages = new Map<string, RetrievedChunk>()
+  for (const c of chunks) {
+    const key = `${c.source_id}#${c.page}`
+    const prev = pages.get(key)
+    if (prev) pages.set(key, { ...prev, text: `${prev.text}\n\n${c.text}` })
+    else if (pages.size < k) pages.set(key, { source_id: c.source_id, page: c.page, text: c.text })
+  }
+  return [...pages.values()]
+}
+
 // only checks that (sourceId, page) was among the retrieved chunks — it does NOT verify the answer text is supported by them
 export function filterCitations(citations: Citation[], chunks: RetrievedChunk[]): Citation[] {
   const valid = new Set(chunks.map((c) => `${c.source_id}#${c.page}`))
