@@ -33,12 +33,15 @@ jobs:
         include:
           - app: api
             project_secret: VERCEL_API_PROJECT_ID
+            token_secret: VERCEL_API_TOKEN
           - app: web
             project_secret: VERCEL_PROJECT_ID
+            token_secret: VERCEL_TOKEN
     env:
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
       VERCEL_PROJECT_ID: ${{ secrets[matrix.project_secret] }}
-      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      # tokens are scoped per Vercel project
+      VERCEL_TOKEN: ${{ secrets[matrix.token_secret] }}
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -48,7 +51,7 @@ jobs:
         run: |
           for name in VERCEL_ORG_ID VERCEL_PROJECT_ID VERCEL_TOKEN; do
             if [ -z "${!name}" ]; then
-              echo "::error::Missing GitHub Actions secret: ${name/VERCEL_PROJECT_ID/${{ matrix.project_secret }}}"
+              echo "::error::Missing GitHub Actions secret: $(case $name in VERCEL_PROJECT_ID) echo ${{ matrix.project_secret }};; VERCEL_TOKEN) echo ${{ matrix.token_secret }};; *) echo $name;; esac)"
               exit 1
             fi
           done
