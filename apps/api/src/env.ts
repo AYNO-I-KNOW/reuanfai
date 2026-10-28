@@ -13,6 +13,8 @@ const askSchema = baseSchema.extend({
   AI_API_KEY: z.string().min(1),
   AI_BASE_URL: z.url(),
   AI_MODEL: z.string().min(1),
+  // same base URL/key; used once per attempt when AI_MODEL answers HTTP 429
+  AI_FALLBACK_MODEL: z.string().min(1).optional(),
   // thinking models (Gemini 3.x) burn maxOutputTokens on reasoning → truncated JSON; 'none' disables it
   AI_REASONING_EFFORT: z.string().min(1).optional(),
 })

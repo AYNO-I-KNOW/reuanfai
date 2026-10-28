@@ -1,6 +1,10 @@
+import { readFile } from 'node:fs/promises'
+import { fileURLToPath } from 'node:url'
 import { createClient } from '@supabase/supabase-js'
 import { createOpenAICompatible } from '@ai-sdk/openai-compatible'
+import { z } from 'zod'
 import { getAskEnv, getIngestEnv } from './env.js'
+import { missingTopicSuggestions } from './kb-lib.js'
 
 // lazy: /health and the rest of the api must work without KB env vars
 const SUPABASE_TIMEOUT_MS = 10_000
@@ -20,10 +24,10 @@ const createSupabase = () =>
 let supabaseClient: ReturnType<typeof createSupabase> | undefined
 export const getSupabase = () => (supabaseClient ??= createSupabase())
 
-export const getChatModel = () => {
+export const getChatModel = (modelId?: string) => {
   const env = getAskEnv()
   return createOpenAICompatible({ name: 'llm', baseURL: env.AI_BASE_URL, apiKey: env.AI_API_KEY })(
-    env.AI_MODEL,
+    modelId ?? env.AI_MODEL,
   )
 }
 
@@ -58,7 +62,25 @@ export async function embedQuestion(question: string) {
 
 export const embedDocuments = (values: string[]) => embed('passage', values)
 
+const SUGGESTIONS_FILE = fileURLToPath(new URL('../../../knowledge/suggestions.json', import.meta.url))
+const suggestionList = z.array(z.string().min(1))
+let suggestions: Promise<{ text: string; vec: number[] }[]> | undefined
+const loadSuggestions = async () => {
+  const texts = suggestionList.parse(JSON.parse(await readFile(SUGGESTIONS_FILE, 'utf8')))
+  const missing = missingTopicSuggestions(texts)
+  if (missing.length) console.warn(`kb topic suggestions not in suggestions.json: ${missing.join(' | ')}`)
+  const vecs = await embed('query', texts)
+  return texts.map((text, i) => ({ text, vec: vecs[i]! }))
+}
+// "query:" prefix on both sides: question-vs-question similarity. A rejected load is not memoized (like getExtractor)
+export const getSuggestions = () =>
+  (suggestions ??= loadSuggestions().catch((err) => {
+    suggestions = undefined
+    throw err
+  }))
+
 // first embed pays the model load (~3s); do it at startup so the first user request does not
 export const warmupEmbeddings = async () => {
   await embedQuestion('warmup')
+  await getSuggestions()
 }

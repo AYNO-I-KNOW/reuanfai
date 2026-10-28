@@ -19,6 +19,7 @@ const MIN_TEXT_CHARS = 20
 
 const sourceSchema = z.object({
   id: z.string().regex(/^[a-z0-9][a-z0-9_-]*$/i),
+  short: z.string().min(1).nullish(),
   apa: z.string().min(1),
   type: z.string().min(1),
   evidence_level: z.string().nullish(),

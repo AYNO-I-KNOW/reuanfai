@@ -91,7 +91,7 @@ apps/
   api/scripts/    ingest.ts (PDF → chunks → embeddings) · eval.ts (hit@5) · pdf.ts (pdftotext)
 knowledge/        <source_id>/pNNN.md (ข้อความรายหน้า) · eval.json · _pdf/ (ต้นฉบับ)
 supabase/
-  migrations/     ที่มีแล้ว (KB): 0001_kb · 0002_kb_hardening · 0003_kb_hybrid · 0004_kb_exact_filter · 0005_kb_query_tidy — ที่เหลือ (init, aggregates, cron) ต่อเลขถัดไป
+  migrations/     ที่มีแล้ว (KB): 0001_kb · 0002_kb_hardening · 0003_kb_hybrid · 0004_kb_exact_filter · 0005_kb_query_tidy · 0006_kb_source_short — ที่เหลือ (init, aggregates, cron) ต่อเลขถัดไป
   seed.sql
 docs/
 ```
