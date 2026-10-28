@@ -1,8 +1,9 @@
 import type {SVGProps} from 'react';
 export const moods=['เครียด','เหนื่อย','เรื่อย ๆ','สบายใจ','มีความสุข'] as const;
-const surfaces:Record<string,string>={เครียด:'#F2B6AA',เหนื่อย:'#C6CDEC','เรื่อย ๆ':'#E7D6C2',สบายใจ:'#D7CAF1',มีความสุข:'#F6D982'};
+const surfaces:Record<string,string>={เครียด:'#EFA18F',เหนื่อย:'#C6CDEC','เรื่อย ๆ':'#E7D6C2',สบายใจ:'#D7CAF1',มีความสุข:'#F6D982'};
 /** Existing round ReuanFai face family: expressions carry meaning as well as color. */
 export default function MoodArt({mood,...props}:{mood:string}&SVGProps<SVGSVGElement>){
+ mood=({'แย่มาก':'เครียด','ไม่ค่อยดี':'เหนื่อย','เฉย ๆ':'เรื่อย ๆ','ดี':'สบายใจ','ดีมาก':'มีความสุข'} as Record<string,string>)[mood]??mood;
  const tired=mood==='เหนื่อย',stressed=mood==='เครียด',happy=mood==='มีความสุข',calm=mood==='สบายใจ';
  return <svg width={64} height={64} viewBox="0 0 96 96" fill="none" aria-hidden="true" {...props}>
  <circle cx="48" cy="48" r="48" fill={surfaces[mood]??surfaces['เรื่อย ๆ']}/>

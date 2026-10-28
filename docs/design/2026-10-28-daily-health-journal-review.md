@@ -85,3 +85,6 @@ Developer: approved structured contract, persistence/migrationของentryเ�
 - https://www.nhs.uk/pregnancy/labour-and-birth/your-body/ (ผลค้นหาจากแหล่งทางการ)
 
 นี่เป็นreviewข้อกำหนด ไม่ใช่การประเมินอาการของผู้ใช้ และไม่มีฟิลด์/การแชร์รายการใหม่ถูกimplementในรอบนี้
+# Implementation update
+
+The frontend implementation now follows this review. See section16 of [UI update](2026-10-28-ui-update.md) for final behavior, visual corrections, verification and demo limitations. Production persistence and clinical review remain follow-up work.
