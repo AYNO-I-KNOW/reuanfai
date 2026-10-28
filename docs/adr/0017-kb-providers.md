@@ -27,3 +27,6 @@
 - **ยังไม่ทราบว่า TokenMe มี ZDR หรือไม่** ขัด `ai.md` → ห้ามส่งข้อมูลจริง/ข้อมูลสุขภาพของผู้ใช้ (ADR-0012) · ดู SPEC Q28
 - ต้อง **revisit ก่อนมีข้อมูลจริง**: ยืนยัน ZDR หรือย้ายไปผู้ให้บริการที่ ZDR/กลับไป AI Gateway และเพิ่ม `requireRole` ให้ `/kb/ask`
 - agent ถาม-ตอบฝั่งแม่ยังไม่อยู่ใน scope ADR-0009 → ต้องมี ADR แยก (SPEC Q28)
+
+## Update 2026-10-28
+ข้อความตัดสินใจข้างต้นไม่เปลี่ยน — แก้เฉพาะข้อเท็จจริงที่คลาดเคลื่อน: ตอนนี้แชท `/kb/ask` ใช้ Gemini `gemini-3.5-flash-lite` (free tier) ผ่าน endpoint OpenAI-compatible ของ Gemini ด้วย `AI_BASE_URL`/`AI_API_KEY`/`AI_MODEL` (TokenMe ยังไม่มี base URL) · เจ้าของโปรเจกต์ยอมรับ Gemini free tier สำหรับต้นแบบ (SPEC Q28) · ข้อ 5 ใช้กับ Gemini เหมือนเดิม และยังต้องมี ZDR ก่อนมีข้อมูลจริง

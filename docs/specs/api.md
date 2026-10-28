@@ -11,7 +11,7 @@
 | Method | Path | Auth | หมายเหตุ |
 |---|---|---|---|
 | GET | `/health` | public | ✅ มีแล้ว |
-| POST | `/kb/ask` | public-prototype | mount เฉพาะเมื่อ `KB_ASK_ENABLED=true` · rate limit 5/นาที + 100/วัน/IP (in-memory) → `rate_limited` 429 · body ≤4096 B · `{ question, track?, k? }` → `{ label, answer, citations[{sourceId, page, apa, url, license}], model }` · `validation` 422, `kb_unavailable`/`ai_unavailable` 502 · **TODO `requireRole('mother','staff')`** ก่อนเปิดจริง (ADR-0017) |
+| POST | `/kb/ask` | public-prototype | mount เฉพาะเมื่อ `KB_ASK_ENABLED=true` (ไม่อยู่ใน `AppType`) · body ≤4096 B: `{ question: string 1–500, track?: 'intl'\|'thai_trad', k?: int 1–10 = 5 }` → 200 `{ label: 'สรุปโดย AI', answer, citations[{sourceId, page, apa, url, license}], model, cached: boolean }` · ไม่พบ/ไม่ผ่าน relevance gate = 200 `answer: 'ไม่พบข้อมูลนี้ในฐานความรู้'` `citations: []` · errors: `validation` 422 (body ผิด/ใหญ่เกิน) · `rate_limited` 429 (5/นาที + 100/วัน ต่อ socket address, in-flight >4, หรือ LLM เกิน 400 ครั้ง/วัน — ต่อ process, in-memory) · `kb_unavailable` 502 (DB/embedding) · `ai_unavailable` 502 (LLM/timeout/JSON ไม่ผ่าน) · cache 24 ชม. (NOT_FOUND 60 วิ) · กติกาตอบดู `ai.md` §KB · **TODO `requireRole('mother','staff')`** ก่อนเปิดจริง (ADR-0017) |
 | POST | `/auth/line` | public | `{ idToken }` → set cookie, `{ mother: { id, hasConsent } }` |
 | POST | `/auth/staff` | public | `{ username, password, unitId?, role }` → set cookie · rate limit 5/นาที/IP |
 | POST | `/auth/logout` | any | |
