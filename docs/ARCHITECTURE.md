@@ -167,4 +167,6 @@ docs/
 
 Supabase provision ผ่าน Vercel Marketplace แล้ว link เข้า `reuanfai-api` เท่านั้น
 
+CI (`.github/workflows/ci.yml`) deploy production ทั้งสอง project เมื่อ push เข้า `main` (api ก่อน แล้ว web) · GitHub secrets: `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID` (web), `VERCEL_API_PROJECT_ID` (api) · env ของแต่ละ project ตั้งใน Vercel (api: `SUPABASE_*`, `AI_*`, `KB_ASK_ENABLED`; web: `API_ORIGIN=https://reuanfai-api.vercel.app`)
+
 เบราว์เซอร์ไม่เรียก `reuanfai-api` ตรง แต่ผ่าน rewrite `/api/*` ของ web (ADR-0013) · ให้ตั้ง `API_ORIGIN` ใน `reuanfai-web` และตั้ง Related Projects เพื่อให้ preview ของ web จับคู่กับ preview ของ api
