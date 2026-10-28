@@ -127,3 +127,5 @@
     @apply font-sans;
   }
 }
+/* Shared form geometry across mother, clinic and department UI. */
+:root{--rf-space-1:4px;--rf-space-2:8px;--rf-space-3:12px;--rf-space-4:16px;--rf-space-5:20px;--rf-space-6:24px;--rf-space-8:32px;--rf-field-height:52px;--rf-field-radius:16px;--rf-field-padding-x:16px;--rf-field-padding-y:13px;--rf-field-label-gap:var(--rf-space-2);--rf-field-group-gap:var(--rf-space-6);--rf-field-font-size:16px;--rf-field-line-height:24px;--rf-field-textarea-min-height:104px}

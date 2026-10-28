@@ -39,3 +39,5 @@
 @starting-style{.confirmDialog[open]{translate:0 100%;}}
 }
 @media(prefers-reduced-motion:reduce){.confirmDialog,.confirmDialog[open]{transition:none;translate:none;}}
+
+.fields{gap:var(--rf-field-group-gap)}.fields>div>label{margin-bottom:var(--rf-field-label-gap)}.timeGrid{gap:var(--rf-space-2)}

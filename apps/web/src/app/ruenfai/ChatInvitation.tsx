@@ -3,8 +3,9 @@ import {useEffect,useState} from 'react';
 import {useChatTopics} from './chat-topics';
 import {useTabNavigation} from './TabMotion';
 import s from './bottom-nav.module.css';
-export default function ChatInvitation({from}:{from:string}){
- const topics=useChatTopics(),navigate=useTabNavigation();
+export default function ChatInvitation({from,questions,onAsk}:{from:string;questions?:string[];onAsk?:(question:string)=>void}){
+ const defaults=useChatTopics(),navigate=useTabNavigation();
+ const topics=questions?.length?questions.map(label=>({label})):defaults;
  const [phase,setPhase]=useState<'typing'|'hold'|'exit'|'hidden'>('typing');
  const [cycle,setCycle]=useState(0),[text,setText]=useState(''),[visible,setVisible]=useState(false);
  const question=topics[cycle%topics.length].label;
@@ -14,5 +15,5 @@ export default function ChatInvitation({from}:{from:string}){
  const reading=400+(reduced?0:segments.length*65)+6000;
  timers.push(setTimeout(()=>setPhase('exit'),reading));timers.push(setTimeout(()=>setPhase('hidden'),reading+240));timers.push(setTimeout(()=>{setCycle(value=>value+1)},reading+2000));return()=>{timers.forEach(clearTimeout);clearInterval(typing)}},[question,visible]);
  if(!visible)return null;
- return <aside data-phase={phase} className={s.invitation} aria-label="คำถามแนะนำ" inert={phase==='hidden'}><button type="button" className={s.inviteQuestion} aria-label={question} onClick={()=>navigate(`/ruenfai/chat?from=${encodeURIComponent(from)}&question=${encodeURIComponent(question)}`)}>{text||<span className={s.typingDots} aria-hidden="true"><i/><i/><i/></span>}</button></aside>;
+ return <aside data-phase={phase} className={s.invitation} aria-label="คำถามแนะนำ" inert={phase==='hidden'}><button type="button" className={s.inviteQuestion} aria-label={question} onClick={()=>onAsk?onAsk(question):navigate(`/ruenfai/chat?from=${encodeURIComponent(from)}&question=${encodeURIComponent(question)}`)}>{text||<span className={s.typingDots} aria-hidden="true"><i/><i/><i/></span>}</button></aside>;
 }

@@ -4569,3 +4569,8 @@ html:has(.modal[open]), body:has(.modal[open]) {
 .shell .appointmentSortButton {
   min-height: 40px;
 }
+
+/* Same form geometry as the mother UI; search uses its enclosing control. */
+.shell :is(input:not([type=checkbox]):not([type=radio]):not([type=hidden]):not([type=file]):not([type=range]),select):not(.search input){box-sizing:border-box;height:var(--rf-field-height);min-height:var(--rf-field-height);border-radius:var(--rf-field-radius);padding:var(--rf-field-padding-y) var(--rf-field-padding-x);font-size:var(--rf-field-font-size);line-height:var(--rf-field-line-height)}
+.shell textarea{box-sizing:border-box;min-height:var(--rf-field-textarea-min-height);border-radius:var(--rf-field-radius);padding:var(--rf-field-padding-y) var(--rf-field-padding-x);font-size:var(--rf-field-font-size);line-height:var(--rf-field-line-height)}
+.shell label>input:not([type=checkbox]):not([type=radio]),.shell label>select,.shell label>textarea{margin-top:var(--rf-field-label-gap)}

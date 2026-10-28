@@ -1,24 +1,40 @@
 'use client';
-import {useState} from 'react';
+import {useId,useState,type ReactNode} from 'react';
+import Checkbox from '@/components/ui/reuanfai-checkbox';
 import {useJournal,type Entry} from './JournalState';
 import j from './journal/journal.module.css';
-import MoodArt,{moods} from './MoodArt';
+import MoodArt from './MoodArt';
 import {useToast} from './ToastProvider';
-const options=['พักผ่อนน้อย','เจ็บแผล','คัดตึงเต้านม','ปวดเมื่อย'];
+import {motherProfile} from '@/design/care-demo';
+import {blankHealth,dailyMoodLevels,toggleAnswer,type DailyHealth} from './journal/daily-health';
+function Choices({label,options,value,onChange,multiple=false}:{label:string;options:string[];value:string|string[];onChange:(value:string)=>void;multiple?:boolean}){return <fieldset className={j.healthField}><legend>{label.replace(' (เลือกได้หลายข้อ)','')}{multiple&&<span className={j.multipleHint}> (เลือกได้หลายข้อ)</span>}</legend><div className={j.healthChoices} role="group" aria-label={label}>{options.map(option=><button type="button" key={option} aria-pressed={multiple?(value as string[]).includes(option):value===option} onClick={()=>onChange(option)}>{option}</button>)}</div></fieldset>}
+function Reveal({open,children}:{open:boolean;children:ReactNode}){
+ return <div className={j.reveal} data-open={open} inert={!open} aria-hidden={!open}><div><div className={j.revealContent}>{children}</div></div></div>;
+}
 export default function JournalForm({date,onSaved,entry}:{date:string;onSaved:()=>void;entry?:Entry}){
- const toast=useToast();
- const {setEntries}=useJournal();
- const [mood,setMood]=useState(entry?.mood??'');
- const [body,setBody]=useState(entry?.body??'');
- const [symptoms,setSymptoms]=useState<string[]>(entry?.symptoms??[]);
- return <form className={j.form} onSubmit={e=>{
-  e.preventDefault();if(!mood)return;
-  setEntries(prev=>entry?prev.map(item=>item.id===entry.id?{...item,mood,body:body.trim(),symptoms}:item):[{id:crypto.randomUUID(),date,title:mood,body:body.trim(),mood,symptoms},...prev]);
-  onSaved();toast(entry?'แก้ไขบันทึกเรียบร้อยแล้ว':'เก็บบันทึกเรียบร้อยแล้ว');
+ const formId=useId();
+ const toast=useToast(),{entries,setEntries}=useJournal(),profile=motherProfile.use();
+ const record=entry??entries.find(item=>item.date===date);
+ const [mood,setMood]=useState(record?.mood??''),[body,setBody]=useState(record?.body??'');
+ const [health,setHealth]=useState<DailyHealth>(()=>record?.health?{...blankHealth(),...record.health}:blankHealth());
+ const [measured,setMeasured]=useState(Boolean(record?.health?.temperature));
+ const patch=<K extends keyof DailyHealth>(key:K,value:DailyHealth[K])=>setHealth(previous=>({...previous,[key]:value}));
+ const woundLabel=profile.birth.includes('ผ่า')?'แผลผ่าคลอด':profile.birth?'แผลฝีเย็บ':'แผลหลังคลอด';
+ const noSymptoms=['ไม่มีอาการผิดปกติ','ไม่มีแผล','ไม่แน่ใจ'];
+ return <form id={formId} className={`${j.form} ${j.healthForm}`} onSubmit={event=>{
+  event.preventDefault();if(!mood)return;
+  const savedHealth={...health,breastSide:health.breast.some(value=>!['ไม่มีอาการผิดปกติ','ไม่แน่ใจ'].includes(value))?health.breastSide:'',painSite:health.pain===0?'':health.painSite,temperature:measured?health.temperature:'',woundSite:health.wound.length?woundLabel:health.woundSite};
+  setEntries(previous=>{const saved=previous.find(item=>item.date===date);return saved?previous.map(item=>item.id===saved.id?{...item,mood,body:body.trim(),health:savedHealth}:item):[{id:crypto.randomUUID(),date,title:mood,body:body.trim(),mood,health:savedHealth},...previous]});
+  onSaved();toast(record?'บันทึกการแก้ไขแล้ว':'บันทึกประจำวันแล้ว');
  }}>
- <fieldset><legend>วันนี้รู้สึกอย่างไร</legend><div className={j.moods}>{moods.map(value=><button type="button" key={value} aria-label={value} aria-pressed={mood===value} onClick={()=>setMood(value)}><MoodArt mood={value} className={j.moodVector}/><span className={j.moodLabel}>{value}</span></button>)}</div></fieldset>
- <fieldset><legend>มีอะไรอยากบอกเพิ่มเติม <span className={j.optional}>(ไม่บังคับ)</span></legend><div className={j.symptoms}>{options.map(value=><button type="button" key={value} aria-pressed={symptoms.includes(value)} onClick={()=>setSymptoms(prev=>prev.includes(value)?prev.filter(item=>item!==value):[...prev,value])}>{value}</button>)}</div></fieldset>
- <label>เรื่องราวของวันนี้ <span className={j.optional}>(ไม่บังคับ)</span><textarea name="body" value={body} onChange={event=>setBody(event.target.value)} placeholder="เล่าเรื่องราวหรืออาการที่อยากบอก…" rows={3}/></label>
- <button className={j.save} type="submit" disabled={!mood}>{entry?'บันทึกการแก้ไข':'เก็บบันทึก'}</button>
+ <fieldset><legend>อารมณ์วันนี้</legend><div className={j.moods} data-has-selection={Boolean(mood)}>{dailyMoodLevels.map(value=><button type="button" key={value} aria-label={value} aria-pressed={mood===value} onClick={()=>setMood(previous=>previous===value?'':value)}><span className={j.moodIconSlot}><MoodArt mood={value} className={j.moodVector}/></span><span className={j.moodLabel}>{value}</span></button>)}</div></fieldset>
+ <section className={j.healthSection}><h3>ความปวดมากที่สุดวันนี้</h3><div className={j.painScale} role="group" aria-label="ระดับความปวด">{Array.from({length:11},(_,n)=><button key={n} type="button" aria-label={`ความปวด ${n} จาก 10${n===0?' ไม่ปวด':n===10?' ปวดมากที่สุด':''}`} aria-pressed={health.pain===n} onClick={()=>setHealth(previous=>({...previous,pain:previous.pain===n?null:n,painSite:n===0?'':previous.painSite}))}>{n}</button>)}</div><Reveal open={health.pain!==null&&health.pain>0}><Choices label="ตำแหน่งที่ปวดมากที่สุด" options={['แผลฝีเย็บ','แผลผ่าคลอด','ท้องน้อย','เต้านม','หลัง']} value={health.painSite} onChange={value=>patch('painSite',value)}/></Reveal></section>
+ <section className={j.healthSection}><h3>น้ำคาวปลา</h3><Choices label="ปริมาณ" options={['ไม่มีน้ำคาวปลา','ปกติ','มาก','ผ้าอนามัยชุ่มภายใน 1 ชม.','ไม่แน่ใจ']} value={health.lochiaAmount} onChange={value=>setHealth(previous=>({...previous,lochiaAmount:value,...(value==='ไม่มีน้ำคาวปลา'?{lochiaColor:'',lochiaOdor:'',lochiaClot:''}:{})}))}/><Reveal open={health.lochiaAmount==='ผ้าอนามัยชุ่มภายใน 1 ชม.'}><aside className={j.careNotice} role="status"><strong>ควรติดต่อบุคลากรทางการแพทย์ทันที</strong><p>อาการนี้เป็นสัญญาณเตือนหลังคลอด ไม่ควรรอการตอบกลับทางแชต</p><a href="https://www.cdc.gov/hearher/maternal-warning-signs/index.html" target="_blank" rel="noreferrer">ข้อมูลอาการเตือนจาก CDC</a></aside></Reveal><Reveal open={health.lochiaAmount!=='ไม่มีน้ำคาวปลา'}><fieldset className={j.healthField}><legend>สีของน้ำคาวปลา</legend><div className={j.colorChoices}>{[{label:'แดงสด',color:'#C65C62'},{label:'ชมพู-น้ำตาล',color:'#B78B80'},{label:'เหลือง-ขาว',color:'#E9DDB6'}].map(item=><button type="button" key={item.label} aria-pressed={health.lochiaColor===item.label} onClick={()=>patch('lochiaColor',item.label)}><span aria-hidden="true" style={{background:item.color}}/>{item.label}</button>)}</div></fieldset><Choices label="มีกลิ่นเหม็นหรือไม่" options={['ไม่มี','มี','ไม่แน่ใจ']} value={health.lochiaOdor} onChange={value=>patch('lochiaOdor',value)}/><Choices label="มีลิ่มเลือดขนาดไข่ไก่หรือใหญ่กว่าหรือไม่" options={['ไม่มี','มี','ไม่แน่ใจ']} value={health.lochiaClot} onChange={value=>patch('lochiaClot',value)}/><Reveal open={health.lochiaOdor==='มี'||health.lochiaClot==='มี'}><aside className={j.careNotice} role="status"><strong>ควรติดต่อบุคลากรทางการแพทย์ทันที</strong><p>อาการนี้เป็นสัญญาณเตือนหลังคลอด ไม่ควรรอการตอบกลับทางแชต</p><a href="https://www.cdc.gov/hearher/maternal-warning-signs/index.html" target="_blank" rel="noreferrer">ข้อมูลอาการเตือนจาก CDC</a></aside></Reveal></Reveal></section>
+ <section className={j.healthSection}><Choices label="อาการไข้วันนี้ (เลือกได้หลายข้อ)" options={['ไม่มีอาการ','ตัวร้อน','หนาวสั่น','ไม่แน่ใจ']} value={health.feverSymptoms} multiple onChange={value=>patch('feverSymptoms',toggleAnswer(health.feverSymptoms,value,['ไม่มีอาการ','ไม่แน่ใจ']))}/><Checkbox className={j.systemCheck} checked={measured} onChange={checked=>{setMeasured(checked);if(!checked)patch('temperature','')}}>วัดอุณหภูมิแล้ว</Checkbox><Reveal open={measured}><label>อุณหภูมิที่วัดได้ (°C)<input name="temperature" type="number" inputMode="decimal" step="0.1" min="30" max="45" required={measured} disabled={!measured} value={health.temperature} onChange={event=>patch('temperature',event.target.value)} placeholder="เช่น 36.8"/></label></Reveal><Reveal open={measured&&health.temperature!==''&&Number(health.temperature)>=38}><aside className={j.careNotice} role="status"><strong>ควรติดต่อบุคลากรทางการแพทย์ทันที</strong><p>อาการนี้เป็นสัญญาณเตือนหลังคลอด ไม่ควรรอการตอบกลับทางแชต</p><a href="https://www.cdc.gov/hearher/maternal-warning-signs/index.html" target="_blank" rel="noreferrer">ข้อมูลอาการเตือนจาก CDC</a></aside></Reveal></section>
+ <section className={j.healthSection}><Choices label={`ลักษณะ${woundLabel} (เลือกได้หลายข้อ)`} options={['ไม่มีแผล','ไม่มีอาการผิดปกติ','บวมแดง','มีหนองหรือน้ำซึม','แผลแยก','ไม่แน่ใจ']} value={health.wound} multiple onChange={value=>patch('wound',toggleAnswer(health.wound,value,noSymptoms))}/></section>
+ <section className={j.healthSection}><Choices label="อาการเต้านม (เลือกได้หลายข้อ)" options={['ไม่มีอาการผิดปกติ','คัดตึง','ก้อนแดงเจ็บ','หัวนมแตก','ไม่แน่ใจ']} value={health.breast} multiple onChange={value=>setHealth(previous=>({...previous,breast:toggleAnswer(previous.breast,value,['ไม่มีอาการผิดปกติ','ไม่แน่ใจ']),breastSide:['ไม่มีอาการผิดปกติ','ไม่แน่ใจ'].includes(value)?'':previous.breastSide}))}/><Reveal open={health.breast.some(value=>!['ไม่มีอาการผิดปกติ','ไม่แน่ใจ'].includes(value))}><Choices label="ข้างที่มีอาการ" options={['ซ้าย','ขวา','ทั้งสองข้าง']} value={health.breastSide} onChange={value=>patch('breastSide',value)}/></Reveal></section>
+
+ <label>บันทึกเพิ่มเติม<textarea name="body" value={body} onChange={event=>setBody(event.target.value)} placeholder="ระบุอาการหรือเรื่องที่ต้องการบันทึกเพิ่มเติม" rows={3}/></label>
+ <footer className={j.formFooter}><button className={j.save} type="submit" disabled={!mood}>{record?'บันทึกการแก้ไข':'บันทึกประจำวัน'}</button></footer>
  </form>;
 }
