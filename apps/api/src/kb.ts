@@ -22,6 +22,7 @@ import {
   foldThai,
   groupByPage,
   isRedFlag,
+  isSelfHarm,
   nearestSuggestions,
   smalltalkKind,
   spreadSuggestions,
@@ -100,6 +101,7 @@ const NOT_FOUND = 'ไม่พบข้อมูลนี้ในฐานค�
 const NOT_FOUND_TEXT = 'ยังไม่พบคำตอบตรง ๆ ในเอกสารค่ะ ลองถามแบบนี้ไหมคะ'
 const OUT_OF_SCOPE_TEXT = 'เรื่องนี้อยู่นอกเอกสารที่ผู้ช่วยใช้อ้างอิงค่ะ ผู้ช่วยตอบได้เฉพาะเรื่องการดูแลหลังคลอด ลองเรื่องเหล่านี้ไหมคะ'
 const RED_FLAG_TEXT = 'อาการนี้ควรให้แพทย์หรือหน่วยบริการตรวจค่ะ ถ้าอาการรุนแรงหรือเร่งด่วน โทร 1669 หรือกดปุ่มติดต่อด่วนได้เลยค่ะ'
+const SELF_HARM_TEXT = 'ขอบคุณที่บอกนะคะ คุณแม่ไม่ได้อยู่คนเดียว โทรสายด่วนสุขภาพจิต 1323 ได้ตลอด 24 ชั่วโมงค่ะ ถ้าอยู่ในอันตรายตอนนี้ โทร 1669 หรือกดปุ่มติดต่อด่วนได้เลยค่ะ'
 const SMALLTALK_TEXT = {
   intro: 'สวัสดีค่ะ 😊 ผู้ช่วยตอบได้เรื่องยาสมุนไพรหลังคลอด การนวด/ประคบ/ทับหม้อเกลือ และคำแนะนำหลังคลอดของคุณแม่ลองถามได้เลยค่ะ',
   thanks: 'ยินดีค่ะ 😊 มีอะไรถามเพิ่มได้เลยนะคะ',
@@ -147,7 +149,12 @@ async function loadContext(supabase: ReturnType<typeof getSupabase>, pages: Retu
     console.error(`kb/ask context: ${errLine(error)}`)
     return pages
   }
-  return expandContext(pages, neighborRows.parse(data ?? []))
+  const neighbors = neighborRows.safeParse(data ?? [])
+  if (!neighbors.success) {
+    console.error(`kb/ask context: ${errLine(neighbors.error)}`)
+    return pages
+  }
+  return expandContext(pages, neighbors.data)
 }
 
 // provider may not support json_schema response_format → JSON is requested in the prompt and validated here
@@ -176,6 +183,8 @@ async function askModel(prompt: string, attempts = 2) {
       temperature: 0,
       providerOptions: { llm: { reasoningEffort: getAskEnv().AI_REASONING_EFFORT } },
       abortSignal: AbortSignal.timeout(LLM_TIMEOUT_MS),
+      // default 2 retries wrap a 429 in RetryError → the fallback check below would never match and takeLlmCall would undercount
+      maxRetries: 0,
     })
   for (let attempt = 1; attempt <= attempts; attempt++) {
     const { AI_MODEL, AI_FALLBACK_MODEL } = getAskEnv()
@@ -234,6 +243,7 @@ export const kb = new Hono().post(
     if (!question) return c.json({ error: 'validation' as const, message: 'invalid request body' }, 422)
     const { track, k } = body.data
     // checked first and without embed/LLM: a symptom must never wait on (or be answered by) the model
+    if (isSelfHarm(question)) return c.json({ ...canned('red_flag', SELF_HARM_TEXT), cached: false })
     if (isRedFlag(question)) return c.json({ ...canned('red_flag', RED_FLAG_TEXT), cached: false })
     const talk = smalltalkKind(question)
     if (talk) {
@@ -308,7 +318,10 @@ export const kb = new Hono().post(
       if (srcError) throw srcError
       const citations = enrichCitations(valid, sourceRows.parse(sources ?? []))
       if (!citations.length) return decline('not_found', NOT_FOUND_TEXT, queryEmbedding, output.model)
-      return ok({ kind: 'answer', label: LABEL, answer: dropEmptyFields(output.answer), citations, model: output.model, suggestions: [] }, ANSWER_TTL_MS)
+      const answer = dropEmptyFields(output.answer)
+      if (!answer) return decline('not_found', NOT_FOUND_TEXT, queryEmbedding, output.model)
+      // a fallback-model answer must not sit 24h under the primary model's key
+      return ok({ kind: 'answer', label: LABEL, answer, citations, model: output.model, suggestions: [] }, output.model === AI_MODEL ? ANSWER_TTL_MS : NOT_FOUND_TTL_MS)
     } catch (err) {
       console.error(`kb/ask ${failure}: ${errLine(err)}`)
       if (err instanceof LlmBudgetError) return c.json(tooManyRequests, 429)

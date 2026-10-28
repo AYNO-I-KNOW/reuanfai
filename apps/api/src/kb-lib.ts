@@ -250,17 +250,32 @@ export function nearestSuggestions(
 
 // red-flag routing: NOT a diagnosis — pure keyword match on the documented referral criteria only
 // (rules.md A1–A6, manual p.79: fever, chills/infection, infected wound, abnormal lochia, heavy bleeding, breast abscess).
-// Symptom phrasing only ("มีไข้", "เป็นไข้", "ไข้สูง", "ตัวร้อน"), never bare "ไข้", so drug-info questions ("ยาแก้ไข้") fall through to RAG.
+// Symptom phrasing only ("มีไข้", "ไข้ขึ้น", "ไข้สูง", "ตัวร้อน"), never bare "ไข้", so drug-info questions ("ยาแก้ไข้") fall through to RAG.
+// (?<!ไม่(ได้)?) keeps "ไม่มีไข้" / "ไม่ได้เป็นไข้" out; (?!คาย) keeps the province "หนองคาย" out
+// The last four patterns (severe headache/vision, breathing/chest, seizure/faint, calf) are NOT in A1–A6 / manual p.79:
+// common postpartum danger signs added with owner approval for safety (SPEC.md Q29). (?!ช้า|ชวน|นำ|จูง) keeps "ชักช้า/ชักชวน" out; (?!พิษ) keeps "ลมพิษ" out
 const RED_FLAG_PATTERNS = [
-  /มีไข้|เป็นไข้|ไข้สูง|ตัวร้อน/,
+  /(?<!ไม่(?:ได้)?)(?:(?:มี|เป็น)(?:อาการ)?ไข้|ตัวร้อน)|ไข้ขึ้น|ไข้สูง/,
   /หนาวสั่น/,
-  /แผล(บวม|แดง|อักเสบ)|(มี|เป็น)หนอง/,
+  /แผล(?:ที่)?(?:มี)?(?:บวม|แดง|อักเสบ|กลิ่น|เหม็น|หนอง)|(?<!ไม่(?:ได้)?)(?:มี|เป็น)หนอง(?!คาย)/,
   /น้ำคาวปลา(มีกลิ่น|เหม็น|ผิดปกติ)/,
   /เลือดออกมาก|ตกเลือด/,
   /เป็นฝี|ฝีที่เต้านม|เต้านม.*บวมแดง|ก้อนบวมแดง/,
+  /(?<!ไม่(?:ได้)?)(?:ปวด(?:หัว|ศีรษะ)(?:มาก|รุนแรง|แรง)|ตาพร่า|ตามัว|มองไม่ชัด|เห็นแสงวูบวาบ)/,
+  /(?<!ไม่(?:ได้)?)(?:หายใจไม่อิ่ม|หายใจลำบาก|หายใจไม่ออก|หอบเหนื่อย|เจ็บหน้าอก|แน่นหน้าอก)/,
+  /(?<!ไม่(?:ได้)?(?:มี)?(?:อาการ)?)ชัก(?!ช้า|ชวน|นำ|จูง)|(?<!ไม่(?:ได้)?)(?:หมดสติ|เป็นลม(?!พิษ))/,
+  /(?<!ไม่(?:ได้)?)(?:ปวดน่อง|น่องบวม|ขาบวม|บวมที่น่อง)/,
+  /shortness of breath|can'?t breathe|chest pain|seizure|unconscious|blurred vision|severe headache|calf (?:pain|swelling)/i,
+]
+
+// not a referral criterion of A1–A6: B4 (severe postpartum depression) already routes to the 1323 hotline card, so self-harm gets the same hotline
+const SELF_HARM_PATTERNS = [
+  /ฆ่าตัวตาย|ทำร้ายตัวเอง|คิดสั้น|จบชีวิต|(?<!ไม่)อยากตาย|ไม่อยากมีชีวิต/,
+  /suicid|self[- ]?harm|kill myself/i,
 ]
 
 export const isRedFlag = (question: string): boolean => RED_FLAG_PATTERNS.some((re) => re.test(foldThai(question)))
+export const isSelfHarm = (question: string): boolean => SELF_HARM_PATTERNS.some((re) => re.test(foldThai(question)))
 
 // whole-message match only: "สวัสดี ยาประสะไพลคืออะไร" is a real question, not smalltalk
 const POLITE = '(ครับ|ค่ะ|คะ|จ้า|นะ|มาก)*[!?.\\s]*$'

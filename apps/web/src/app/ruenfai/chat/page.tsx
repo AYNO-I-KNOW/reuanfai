@@ -6,7 +6,7 @@ import {Fragment,useEffect,useRef,useState} from "react";
 import s from "./chat.module.css";
 import EmergencyAction from "../EmergencyAction";
 import {routes as tabRoutes,useTabNavigation} from "../TabMotion";
-import {useChatTopics} from "../chat-topics";
+import {allChatTopics,useChatTopics} from "../chat-topics";
 type Citation = { sourceId: string; page: number; short?: string | null; apa: string; url: string | null };
 type SourceGroup = { sourceId: string; short: string; apa: string; url: string | null; pages: number[] };
 // one line per source: pages sorted + deduped; short name falls back to apa
@@ -23,10 +23,11 @@ type Message = { text: string; user: boolean; kind?: string; label?: string | nu
 const BOT_NAME = "ผู้ช่วยส่วนตัว";
 const chipsHeading = (message: Message) => (message.kind === "smalltalk" || message.kind === "topic" ? "ลองถามเรื่องเหล่านี้" : "หรือคุณหมายถึง");
 const RATE_LIMITED = "ตอนนี้มีคนถามเยอะ ลองใหม่อีกครั้งในอีกสักครู่นะคะ", FAILED = "ขออภัยค่ะ ตอนนี้ตอบคำถามไม่ได้ ลองใหม่อีกครั้งในอีกสักครู่นะคะ";
-// Maps every failure to a friendly bot message; only an abort (unmount) is rethrown.
+const ASK_TIMEOUT_MS = 30_000;
+// Maps every failure (incl. timeout) to a friendly bot message; only an abort (unmount) is rethrown.
 async function ask(question: string, signal: AbortSignal): Promise<Message> {
   try {
-    const res = await fetch("/api/kb/ask", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ question }), signal });
+    const res = await fetch("/api/kb/ask", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ question }), signal: AbortSignal.any([signal, AbortSignal.timeout(ASK_TIMEOUT_MS)]) });
     if (res.status === 429) return { text: RATE_LIMITED, user: false };
     const data = res.ok ? await res.json() : null;
     if (typeof data?.answer !== "string") return { text: FAILED, user: false };
@@ -56,8 +57,8 @@ export default function ChatPage() {
   ]);
   const [draft, setDraft] = useState("");
   const deepLinkSent=useRef(false);
-  // ?question=label[&query=kb query] from the home bubble: send once (timer + ref survive StrictMode's mount→unmount→mount)
-  useEffect(()=>{const timer=setTimeout(()=>{if(deepLinkSent.current)return;const params=new URLSearchParams(window.location.search),question=params.get("question")?.slice(0,500),query=params.get("query")?.slice(0,500)||question;if(!question)return;deepLinkSent.current=true;params.delete("question");params.delete("query");history.replaceState(history.state,"",`${location.pathname}${params.size?`?${params}`:""}`);send(question,true,query)},0);return()=>clearTimeout(timer)},[]);
+  // ?question=label from the home bubble: a known chip label sends its mapped query once (timer + ref survive StrictMode's mount→unmount→mount); anything else only fills the draft, never auto-sends
+  useEffect(()=>{const timer=setTimeout(()=>{if(deepLinkSent.current)return;const params=new URLSearchParams(window.location.search),question=params.get("question")?.slice(0,500);if(!question)return;deepLinkSent.current=true;params.delete("question");params.delete("query");history.replaceState(history.state,"",`${location.pathname}${params.size?`?${params}`:""}`);const topic=allChatTopics.find(item=>item.label===question);if(topic)send(question,true,topic.query);else setDraft(question)},0);return()=>clearTimeout(timer)},[]);
   const [replying, setReplying] = useState(false);
   const pending = useRef<AbortController | null>(null);
   const following = useRef(true);

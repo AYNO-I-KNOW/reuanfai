@@ -9,6 +9,8 @@ const PERINEUM=t('ปวดแผลฝีเย็บใช้ยาอะไ�
 const MIDDLE=[t('นวดหลังคลอดได้เมื่อไหร่','การนวดหลังคลอดทำได้เมื่อไหร่'),t('ข้อห้ามการประคบสมุนไพร','ข้อห้ามของการประคบสมุนไพรหลังคลอด'),t('ต้องตรวจหลังคลอดกี่ครั้ง','How many postnatal contacts does WHO recommend?'),t('ยาบำรุงเลือดกินอย่างไร','ยาบำรุงโลหิตใช้ทำอะไร')];
 const LATE=[t('ธาตุเหล็กต้องกินนานแค่ไหน','How long should postpartum women take oral iron and folic acid?'),EXCLUSIVE_BF,t('คัดกรองซึมเศร้าหลังคลอด','How should postpartum depression be screened?')];
 const CESAREAN=[t('ผ่าคลอดทับหม้อเกลือได้เมื่อไหร่','ผ่าคลอดแล้วทำทับหม้อเกลือได้หลังกี่วัน'),t('ผ่าคลอดกินยาสตรีหลังคลอดได้ไหม','หญิงผ่าคลอดกินยาสตรีหลังคลอดได้ไหม')];
+// every chip of every stage: the chat deep link (?question=label) is resolved against this, so a crafted link cannot pair a shown question with a different query
+export const allChatTopics:ChatTopic[]=[...EARLY,PERINEUM,EXCLUSIVE_BF,...MIDDLE,...LATE,...CESAREAN];
 export function useChatTopics():ChatTopic[]{
  const profile=motherProfile.use();
  const today=new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Bangkok'});

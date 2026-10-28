@@ -57,7 +57,7 @@ try {
 
 const supabase = getSupabase()
 const source = sourceSchema.parse(JSON.parse(await readFile(sourcePath, 'utf8')))
-const { error: srcError } = await supabase.from('kb_sources').upsert(source, { onConflict: 'id' })
+const { error: srcError } = await supabase.from('kb_sources').upsert({ ...source, short: source.short ?? null }, { onConflict: 'id' })
 if (srcError) fail('upsert kb_sources', srcError)
 
 const dir = `${KNOWLEDGE_DIR}${source.id}`
