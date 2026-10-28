@@ -5,12 +5,13 @@
 > web เรียกผ่าน `hc<AppType>` ทุก route ต้อง chain บน app เดียวกันเพื่อให้ type ไหลไปถึง web
 
 ## Error codes
-`unauthorized` 401 · `forbidden` 403 · `not_found` 404 · `validation` 422 · `consent_required` 403 · `referral_locked` 409 · `quota_exhausted` 409 · `slot_full` 409 · `outside_window` 409 · `same_day` 409 · `out_of_stock` 409 · `eligibility_unchecked` 422 · `share_required` 403
+`unauthorized` 401 · `forbidden` 403 · `not_found` 404 · `validation` 422 · `consent_required` 403 · `referral_locked` 409 · `quota_exhausted` 409 · `slot_full` 409 · `outside_window` 409 · `same_day` 409 · `out_of_stock` 409 · `eligibility_unchecked` 422 · `share_required` 403 · `rate_limited` 429 · `kb_unavailable` 502 · `ai_unavailable` 502
 
 ## 0. Public / system
 | Method | Path | Auth | หมายเหตุ |
 |---|---|---|---|
 | GET | `/health` | public | ✅ มีแล้ว |
+| POST | `/kb/ask` | public-prototype | mount เฉพาะเมื่อ `KB_ASK_ENABLED=true` · rate limit 5/นาที + 100/วัน/IP (in-memory) → `rate_limited` 429 · body ≤4096 B · `{ question, track?, k? }` → `{ label, answer, citations[{sourceId, page, apa, url, license}], model }` · `validation` 422, `kb_unavailable`/`ai_unavailable` 502 · **TODO `requireRole('mother','staff')`** ก่อนเปิดจริง (ADR-0017) |
 | POST | `/auth/line` | public | `{ idToken }` → set cookie, `{ mother: { id, hasConsent } }` |
 | POST | `/auth/staff` | public | `{ username, password, unitId?, role }` → set cookie · rate limit 5/นาที/IP |
 | POST | `/auth/logout` | any | |
