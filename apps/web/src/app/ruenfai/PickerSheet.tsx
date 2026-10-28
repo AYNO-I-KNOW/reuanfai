@@ -2,11 +2,12 @@
 import {useEffect,useId,useRef,useState,type ReactNode} from 'react';
 import {CalendarDays,Check,ChevronDown,ChevronLeft,ChevronRight,X} from 'lucide-react';
 import s from './picker-sheet.module.css';
+import SheetResize from './SheetResize';
 export function PickerSheet({title,children,trigger,disabled=false}:{title:string;children:(close:()=>void)=>ReactNode;trigger:ReactNode;disabled?:boolean}){
- const dialog=useRef<HTMLDialogElement>(null),start=useRef<number|null>(null),id=useId();const [closing,setClosing]=useState(false);
+ const dialog=useRef<HTMLDialogElement>(null),id=useId();const [closing,setClosing]=useState(false);
  function close(){setClosing(true)}
  useEffect(()=>{if(!closing)return;const timer=setTimeout(()=>{dialog.current?.close();setClosing(false)},window.matchMedia('(prefers-reduced-motion: reduce)').matches?0:240);return()=>clearTimeout(timer)},[closing]);
- return <><button type="button" className={s.trigger} disabled={disabled} aria-label={title} aria-haspopup="dialog" onClick={()=>{setClosing(false);dialog.current?.showModal()}}>{trigger}</button><dialog ref={dialog} className={s.dialog} aria-labelledby={id} onCancel={e=>{e.preventDefault();close()}} onClick={e=>{if(e.target===e.currentTarget)close()}}><div className={s.sheet+' '+(closing?s.closing:'')} onAnimationEnd={e=>{if(e.target===e.currentTarget&&closing){dialog.current?.close();setClosing(false)}}}><div className={s.handle} onPointerDown={e=>{start.current=e.clientY;e.currentTarget.setPointerCapture(e.pointerId)}} onPointerUp={e=>{if(start.current!==null&&e.clientY-start.current>45)close();start.current=null}} onPointerCancel={()=>{start.current=null}}><i/></div><header><h2 id={id}>{title}</h2><button type="button" onClick={close} aria-label={'ปิด'+title}><X size={20}/></button></header><div className={s.body}>{children(close)}</div></div></dialog></>;
+ return <><button type="button" className={s.trigger} disabled={disabled} aria-label={title} aria-haspopup="dialog" onClick={()=>{setClosing(false);dialog.current?.showModal()}}>{trigger}</button><dialog ref={dialog} className={s.dialog} aria-labelledby={id} onCancel={e=>{e.preventDefault();close()}} onClick={e=>{if(e.target===e.currentTarget)close()}}><div className={s.sheet+' '+(closing?s.closing:'')} onAnimationEnd={e=>{if(e.target===e.currentTarget&&closing){dialog.current?.close();setClosing(false)}}}><SheetResize onDismiss={close}/><header><h2 id={id}>{title}</h2><button type="button" onClick={close} aria-label={'ปิด'+title}><X size={20}/></button></header><div className={s.body}>{children(close)}</div></div></dialog></>;
 }
 export function SheetSelect({value,options,onChange,ariaLabel,disabled=false}:{value:unknown;options:{value:string;label:ReactNode;disabled?:boolean}[];onChange?:(event:{target:{value:string};currentTarget:{value:string}})=>void;ariaLabel:string;disabled?:boolean;expandBelow?:boolean}){
  const selected=options.find(option=>option.value===String(value));

@@ -1,5 +1,6 @@
 'use client';
 import {useEffect,useId,useRef,useState} from 'react';
+import SheetResize from './SheetResize';
 import {flushSync} from 'react-dom';
 import {Copy,MapPin,Share2,X} from 'lucide-react';
 import {motherProfile} from '@/design/care-demo';
@@ -10,15 +11,14 @@ type Position={latitude:number;longitude:number;accuracy:number;time:number};
 const validPhone=(value:string)=>/^0\d{8,9}$/.test(value);
 export default function EmergencyAction({subtle=false}:{subtle?:boolean}){
  const dialog=useRef<HTMLDialogElement>(null),request=useRef(0);const title=useId(),placeId=useId(),symptomId=useId();
- const gesture=useRef<number|null>(null),handleDragged=useRef(false),scrollIntent=useRef(false),patientGesture=useRef<{x:number;y:number}|null>(null),patientSwiped=useRef(false);
- const [expanded,setExpanded]=useState(false);
+ const patientGesture=useRef<{x:number;y:number}|null>(null),patientSwiped=useRef(false);
  const [closing,setClosing]=useState(false),[phone,setPhone]=useState(''),[callback,setCallback]=useState(''),[patient,setPatient]=useState<'mother'|'baby'>('mother'),[context,setContext]=useState('');
  const [place,setPlace]=useState(''),[symptoms,setSymptoms]=useState(''),[position,setPosition]=useState<Position|null>(null),[locating,setLocating]=useState(false),[locationError,setLocationError]=useState(''),[notice,setNotice]=useState('');
  useEffect(()=>()=>{request.current++},[]);
  const open=()=>{
   const profile=motherProfile.snapshot();let saved=profile.emergencyPhone;try{saved=localStorage.getItem('ruenfai-emergency-phone')||saved}catch{}
   const today=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Bangkok'}).format(new Date());const elapsed=Math.floor((Date.parse(today+'T00:00:00Z')-Date.parse(profile.deliveryDate+'T00:00:00Z'))/86400000);
-  flushSync(()=>{setPhone(validPhone(saved)?saved:'');setCallback(validPhone(profile.phone)?profile.phone:'');setContext(Number.isFinite(elapsed)&&elapsed>=0?`หลังคลอด ${elapsed} วัน${profile.birth?` (${profile.birth})`:''}`:'หลังคลอด');setClosing(false);setExpanded(false);scrollIntent.current=false;setNotice('')});
+  flushSync(()=>{setPhone(validPhone(saved)?saved:'');setCallback(validPhone(profile.phone)?profile.phone:'');setContext(Number.isFinite(elapsed)&&elapsed>=0?`หลังคลอด ${elapsed} วัน${profile.birth?` (${profile.birth})`:''}`:'หลังคลอด');setClosing(false);setNotice('')});
   dialog.current?.showModal();
   locate();
  };
@@ -39,9 +39,10 @@ export default function EmergencyAction({subtle=false}:{subtle?:boolean}){
  return <>
   <button type="button" className={`${e.trigger} ${subtle?e.subtle:''}`} aria-label="ติดต่อฉุกเฉิน" aria-haspopup="dialog" onClick={open}><SolidEmergency size={subtle?20:24}/>{subtle&&<span>ฉุกเฉิน</span>}</button>
   <dialog ref={dialog} className={s.medicineDialog} aria-labelledby={title} onCancel={event=>{event.preventDefault();close()}} onClick={event=>{if(event.target===event.currentTarget)close()}}>
-   <section className={`${s.medicineSheet} ${e.sheet} ${expanded?e.expanded:''} ${closing?s.medicineClosing:''}`} onAnimationEnd={event=>{if(event.target===event.currentTarget&&closing)finish()}}>
-    <header className={`${s.medicineSheetHeader} ${e.header}`} onPointerDown={event=>{const target=event.target as HTMLElement;if(target.closest('button')&&!target.closest(`.${e.handle}`))return;handleDragged.current=false;scrollIntent.current=false;gesture.current=event.clientY;(target.closest('button')??event.currentTarget).setPointerCapture(event.pointerId)}} onPointerUp={event=>{const start=gesture.current;gesture.current=null;if(start===null)return;const delta=event.clientY-start;if(Math.abs(delta)>32)handleDragged.current=true;if(delta < -32)setExpanded(true);else if(delta>64){if(expanded)setExpanded(false);else close()}}} onPointerCancel={()=>{gesture.current=null}}><button type="button" className={e.handle} aria-label={expanded?'ย่อข้อมูลฉุกเฉิน':'ขยายข้อมูลฉุกเฉินเต็มจอ'} aria-expanded={expanded} onClick={event=>{scrollIntent.current=false;if(event.detail===0||!handleDragged.current)setExpanded(value=>!value);handleDragged.current=false}}><span/></button><h2 id={title}>ขอความช่วยเหลือฉุกเฉิน</h2><button type="button" aria-label="ปิดช่องทางฉุกเฉิน" onClick={close} autoFocus><X size={20}/></button></header>
-    <div className={`${s.medicineSheetBody} ${e.body}`} onWheelCapture={()=>{scrollIntent.current=true}} onTouchMoveCapture={()=>{scrollIntent.current=true}} onPointerDownCapture={()=>{scrollIntent.current=true}} onKeyDownCapture={event=>{if(['PageDown','ArrowDown',' '].includes(event.key))scrollIntent.current=true}} onScroll={event=>{if(scrollIntent.current&&!expanded&&event.currentTarget.scrollTop>8){scrollIntent.current=false;setExpanded(true)}}}>
+   <section className={`${s.medicineSheet} ${e.sheet} ${closing?s.medicineClosing:''}`} onAnimationEnd={event=>{if(event.target===event.currentTarget&&closing)finish()}}>
+    <SheetResize onDismiss={close}/>
+    <header className={`${s.medicineSheetHeader} ${e.header}`}><h2 id={title}>ขอความช่วยเหลือฉุกเฉิน</h2><button type="button" aria-label="ปิดช่องทางฉุกเฉิน" onClick={close} autoFocus><X size={20}/></button></header>
+    <div className={`${s.medicineSheetBody} ${e.body}`}>
      <fieldset className={e.patient}><legend>ขอความช่วยเหลือให้</legend><div className={e.segment} data-patient={patient} role="radiogroup" aria-label="ผู้ป่วย" onPointerDown={event=>{patientSwiped.current=false;patientGesture.current={x:event.clientX,y:event.clientY}}} onPointerUp={event=>{const start=patientGesture.current;patientGesture.current=null;if(!start)return;const dx=event.clientX-start.x,dy=event.clientY-start.y;if(Math.abs(dx)>24&&Math.abs(dx)>Math.abs(dy)*1.3){patientSwiped.current=true;setPatient(dx>0?'baby':'mother')}}} onPointerCancel={()=>{patientGesture.current=null;patientSwiped.current=false}} onKeyDown={event=>{if(!['ArrowLeft','ArrowRight','Home','End'].includes(event.key))return;event.preventDefault();const next=event.key==='ArrowLeft'||event.key==='Home'?'mother':'baby';setPatient(next);event.currentTarget.querySelector<HTMLButtonElement>(`[data-value="${next}"]`)?.focus()}}><span className={e.segmentThumb} aria-hidden="true"/>{(['mother','baby'] as const).map(value=><button key={value} type="button" role="radio" data-value={value} aria-checked={patient===value} tabIndex={patient===value?0:-1} onClick={event=>{if(event.detail===0||!patientSwiped.current)setPatient(value);patientSwiped.current=false}}>{value==='mother'?'คุณแม่':'ลูกน้อย'}</button>)}</div></fieldset>
      <section className={e.location} aria-label="สถานที่เกิดเหตุ"><div className={e.sectionHeading}><h3><MapPin size={18}/>สถานที่เกิดเหตุ</h3><button type="button" disabled={locating} onClick={locate}>{locating?'กำลังค้นหา…':position?'อัปเดตพิกัด':'ใช้ตำแหน่งปัจจุบัน'}</button></div>
       {position&&<p className={e.coordinates}>{position.latitude.toFixed(6)}, {position.longitude.toFixed(6)}<small>อัปเดต {new Date(position.time).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})} · คลาดเคลื่อนประมาณ {Math.round(position.accuracy)} ม.</small><a className={e.map} href={`https://www.google.com/maps/search/?api=1&query=${position.latitude},${position.longitude}`} target="_blank" rel="noreferrer">ดูใน Google Maps</a><small>เปิดแผนที่จะแชร์พิกัดกับ Google</small></p>}

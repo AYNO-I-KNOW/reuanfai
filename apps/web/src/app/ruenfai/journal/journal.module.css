@@ -93,3 +93,10 @@
 
 /* Keep shared checkbox geometry intact inside journal form label rules. */
 .healthForm label.systemCheck,.shareContent label.systemCheck{display:flex;flex-direction:row;align-items:center;gap:10px;font:400 14px/22px 'ReuanFai UI',sans-serif;min-height:44px}.systemCheck>span:first-child{flex:0 0 20px}.systemCheck>span:last-child{min-width:0}.healthForm .healthField legend{max-width:100%;white-space:normal;overflow-wrap:break-word}.healthForm>label{display:grid;gap:8px}.healthForm>label textarea{margin-top:0}
+
+.reveal{display:grid;grid-template-rows:0fr;opacity:0;transition:grid-template-rows 260ms cubic-bezier(.22,1,.36,1),opacity 180ms ease;margin-top:-16px}.reveal[data-open=true]{grid-template-rows:1fr;opacity:1;margin-top:0}.reveal>div{overflow:hidden;min-height:0}.reveal label{display:grid;gap:8px}.reveal:not([data-open=true]){visibility:hidden}.reveal{transition:grid-template-rows 260ms cubic-bezier(.22,1,.36,1),opacity 180ms ease,margin-top 260ms ease,visibility 260ms}.reveal[data-open=true]{visibility:visible}@media(prefers-reduced-motion:reduce){.reveal{transition:none}}
+
+/* Match Home emergency action geometry, with export-specific icon and wording. */
+.shareLaunch>button{display:flex;align-items:center;justify-content:center;gap:6px;width:auto;min-width:44px;height:44px;min-height:44px;padding:0 12px;border:0;border-radius:99px;background:#8870c8;color:#fff;font:500 12px/18px 'ReuanFai UI',sans-serif;white-space:nowrap;flex-shrink:0}.shareLaunch>button:hover{background:#765cb7}.shareLaunch>button:active{transform:scale(.97)}.shareLaunch>button>svg{flex-shrink:0;color:inherit}
+
+.exportForm{display:grid;gap:24px;padding:8px 0 4px}.exportDates{display:grid;gap:24px}.exportDates .healthField{display:grid;gap:8px;font:500 16px/24px 'ReuanFai UI',sans-serif}.exportFile{display:flex;align-items:center;gap:12px;padding:16px;background:#f6f3fd;border-radius:16px;color:#6549f7}.exportFile>div{display:grid;gap:4px}.exportFile strong{font:500 16px/24px 'ReuanFai UI',sans-serif}.exportFile span{font:400 14px/22px 'ReuanFai UI',sans-serif;color:#82798e}.exportForm>.save{width:100%;min-height:48px}
