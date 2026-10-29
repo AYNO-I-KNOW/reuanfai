@@ -1,7 +1,7 @@
 'use client';
-import {useEffect,useState} from 'react';
+import {useRef,useState} from 'react';
 import {ChevronLeft} from 'lucide-react';
-import {Choices} from './MotherForm';
+import {Choices,focusFirstInvalid} from './MotherForm';
 import s from './onboarding.module.css';
 import j from '../journal/journal.module.css';
 const symptomQuestions=[
@@ -35,16 +35,16 @@ const stages={
  3:{questions:conditionQuestions,formId:'mother-conditions',headingId:'conditions-heading',title:'ภาวะที่อาจมีผลต่อการรับบริการ',description:'บอกภาวะสุขภาพในปัจจุบัน ตามข้อมูลที่แพทย์เคยแจ้ง หากไม่แน่ใจ สามารถเล่าเพิ่มเติมได้',back:'กลับไปอาการหลังคลอด'},
  4:{questions:precautionQuestions,formId:'mother-precautions',headingId:'precautions-heading',title:'เรื่องที่ต้องระวังก่อนทำหัตถการ',description:'บอกอาการและสภาพร่างกายในช่วงนี้ เพื่อประกอบการประเมินความพร้อมก่อนทำหัตถการ',back:'กลับไปภาวะที่อาจมีผลต่อการรับบริการ'},
 };
-export default function SymptomsForm({onBack,onSaved,onValidityChange,stage=2}:{onBack:()=>void;onSaved:()=>void;onValidityChange:(valid:boolean)=>void;stage?:2|3|4}){
+export default function SymptomsForm({onBack,onSaved,stage=2}:{onBack:()=>void;onSaved:()=>void;stage?:2|3|4}){
  const config=stages[stage];
  const {questions}=config;
  const [answers,setAnswers]=useState<string[]>(questions.map(()=>''));
  const [notes,setNotes]=useState<string[]>(questions.map(()=>''));
  const valid=answers.every(Boolean);
- useEffect(()=>{onValidityChange(valid)},[valid,onValidityChange]);
- return <form id={config.formId} className={`${s.wizard} ${s.stageForm}`} onSubmit={e=>{e.preventDefault();if(valid)onSaved()}}>
+ const [submitted,setSubmitted]=useState(false);const form=useRef<HTMLFormElement>(null);
+ return <form ref={form} id={config.formId} className={`${s.wizard} ${s.stageForm}`} onSubmit={e=>{e.preventDefault();if(valid){onSaved();return;}setSubmitted(true);focusFirstInvalid(form.current);}}>
  <header className={s.flowHeader}><div className={s.flowHeaderRow}><button type="button" aria-label={config.back} onClick={onBack}><ChevronLeft size={18}/></button><div className={s.flowProgress} role="progressbar" aria-label={`ช่วงที่ ${stage} จาก 4`} aria-valuemin={0} aria-valuemax={4} aria-valuenow={stage}><span style={{width:`${stage*25}%`}}/></div><small>{stage} จาก 4</small></div></header>
  <div className={s.stepTitle}><h1 id={config.headingId} tabIndex={-1}>{config.title}</h1><p>{config.description}</p></div>
- <div className={`${j.form} ${s.wizardFields}`}>{questions.map((question,index)=><div key={question} className={s.questionBlock}><Choices title={question} options={['มี','ไม่มี','ไม่แน่ใจ']} value={answers[index]?[answers[index]]:[]} onChange={value=>setAnswers(current=>current.map((answer,i)=>i===index?value[0]:answer))}/><div className={s.explanation} data-open={answers[index]==='ไม่แน่ใจ'} inert={answers[index]!=='ไม่แน่ใจ'}><div><label><textarea aria-label={`รายละเอียดเพิ่มเติม: ${question}`} value={notes[index]} onChange={e=>setNotes(current=>current.map((note,i)=>i===index?e.target.value:note))} placeholder="เล่าอาการหรือข้อมูลที่จำได้เพิ่มเติม (ไม่บังคับ)" rows={3}/></label></div></div></div>)}</div>
+ <div className={`${j.form} ${s.wizardFields}`}>{questions.map((question,index)=><div key={question} className={s.questionBlock}><Choices title={question} options={['มี','ไม่มี','ไม่แน่ใจ']} value={answers[index]?[answers[index]]:[]} onChange={value=>setAnswers(current=>current.map((answer,i)=>i===index?value[0]:answer))} error={submitted&&!answers[index]&&'กรุณาตอบข้อนี้'}/><div className={s.explanation} data-open={answers[index]==='ไม่แน่ใจ'} inert={answers[index]!=='ไม่แน่ใจ'}><div><label><textarea aria-label={`รายละเอียดเพิ่มเติม: ${question}`} value={notes[index]} onChange={e=>setNotes(current=>current.map((note,i)=>i===index?e.target.value:note))} placeholder="เล่าอาการหรือข้อมูลที่จำได้เพิ่มเติม (ไม่บังคับ)" rows={3}/></label></div></div></div>)}</div>
  </form>;
 }

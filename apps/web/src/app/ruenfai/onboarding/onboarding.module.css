@@ -208,3 +208,6 @@
 .stageForm .choiceGroup legend{line-height:22px;margin-bottom:var(--rf-field-label-gap)}
 .stageForm .choices{gap:var(--rf-space-2)}
 .stageForm .stepTitle{margin-bottom:var(--rf-space-6)}
+
+/* Inline validation message under its field (same red as profile/payment errors, 6.5:1 on white). Direct grid children pull up from the 24px field gap. */
+.fieldError{margin:8px 0 0;font-size:13px;line-height:20px;font-weight:500;color:#b3261e}.wizardFields>.fieldError{margin-top:-16px}.wizardFields input[aria-invalid=true]{border-color:#b3261e}
