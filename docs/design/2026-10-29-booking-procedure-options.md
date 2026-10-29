@@ -34,3 +34,7 @@ Branch: `thanid-edit-main`
 - `git diff --check` ผ่าน
 - `pnpm --filter @reuanfai/web typecheck` ยังไม่ผ่าน เนื่องจาก dependencies ที่ฝั่ง API หาไม่พบ ได้แก่ zod, @supabase/supabase-js, @ai-sdk/openai-compatible และ ai รวมถึง type errors ในไฟล์ API ไม่ได้แก้ dependencies หรือไฟล์ API ในงานนี้
 - การจองยังเป็น browser-local demo ตามระบบเดิม
+
+## แนวทางบันทึกงานถัดไป
+
+ตามคำขอผู้ใช้ ให้บันทึกการแก้ไขเพิ่มเติมในไฟล์ Markdown นี้ต่อเนื่อง โดยเพิ่มหัวข้อระบุวันที่ สิ่งที่แก้ และผลตรวจ ไม่แยกไฟล์รายงานใหม่สำหรับงานต่อเนื่องใน branch นี้
