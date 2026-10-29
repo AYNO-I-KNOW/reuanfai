@@ -616,6 +616,10 @@
   font-size: 14px;
   color: #6c6e82;
 }
+.actions>.doctorPick {
+  width: 240px;
+  flex: none;
+}
 .shell .primary {
   background: #6549f7;
   color: #fff;

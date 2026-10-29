@@ -1,5 +1,7 @@
 'use client';
 import { createDemoStore } from './demo-store';
+import { motherIdentity } from '@/app/ruenfai/mother-identity';
+import { profileDetails } from '@/app/ruenfai/profile/profile-details';
 import { initialAppointments, initialMedicines, type Appointment, type Medicine } from '@/app/provider/design-preview/mock-data';
 export type Booking = {
     id: string;
@@ -56,7 +58,8 @@ export function saveBooking(input: Omit<Booking, 'id' | 'patient'>) {
     const id = `booking-${crypto.randomUUID()}`;
     const [year, month, day] = input.date.split('-').map(Number);
     const booking: Booking = { ...input, id, patient: 'M01' };
-    careDemo.set(old => ({ ...old, bookings: [...old.bookings, booking], appointments: [...old.appointments, { id, name: 'M01', phone: profile.phone, day, month: month - 1, year: year + 543, time: input.time, services: input.services.join(', '), birth: profile.birth, postpartum: profile.deliveryDate ? Math.max(0, Math.floor((Date.parse(input.date) - Date.parse(profile.deliveryDate)) / 86400000)) : 0, visit: 1, rights: false, status: 'รอยืนยันนัด', screening: 'ให้ประเมิน', illustration: input.services[0] === 'ประคบสมุนไพร' ? 1 : 0 }] }));
+    const details = profileDetails.snapshot();
+    careDemo.set(old => ({ ...old, bookings: [...old.bookings, booking], appointments: [...old.appointments, { id, name: motherIdentity.snapshot().nickname.trim() || 'M01', phone: profile.phone, day, month: month - 1, year: year + 543, time: input.time, services: input.services.join(', '), birth: profile.birth, postpartum: profile.deliveryDate ? Math.max(0, Math.floor((Date.parse(input.date) - Date.parse(profile.deliveryDate)) / 86400000)) : 0, visit: 1, rights: false, status: 'รอยืนยันนัด', screening: 'ให้ประเมิน', illustration: input.services[0] === 'ประคบสมุนไพร' ? 1 : 0, conditions: details.conditions, medicines: details.medicines, herbAllergy: details.herbAllergy, requestedAt: new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Bangkok' }).format(new Date()) }] }));
     return true;
 }
 export function savePrescription(input: Omit<Prescription, 'id' | 'date'>) {

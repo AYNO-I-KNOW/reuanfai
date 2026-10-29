@@ -3,6 +3,7 @@ export type Appointment = {
   postpartum: number; visit: number; rights: boolean;
   status: 'ยืนยันแล้ว' | 'รอยืนยันนัด' | 'รอประเมิน' | 'บันทึกแล้ว' | 'ยกเลิก';
   screening: string; illustration: number; doctor?:string; endTime?:string; endDate?:string;
+  conditions?:string; medicines?:string; herbAllergy?:string; requestedAt?:string; confirmedAt?:string;
 };
 export const doctors = ['พท. พิมพ์ชนก ใจดี','พท. ณัฐวุฒิ สุขใจ','พท. ชลธิชา วัฒนกุล'];
 export const initialAppointments: Appointment[] = [
