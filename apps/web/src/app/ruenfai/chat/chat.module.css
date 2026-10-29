@@ -244,6 +244,9 @@
 /* KB reply: AI label above the bubble, citations and follow-up chips below it. */
 .ubot-reply{display:flex;flex-direction:column;align-items:flex-start;gap:6px;max-width:84%}.ubot-reply .ubot-bubble{max-width:100%}.ubot-label{padding-left:4px;font-size:11px;color:#625d70}.ubot-cites{margin:0;padding:0 4px;list-style:none;font-size:12px;line-height:1.5;color:#625d70;overflow-wrap:anywhere}.ubot-cites a{color:#5438db;text-decoration:underline}.ubot-cites summary{cursor:pointer}.ubot-cites details>span{display:block;margin-top:2px;font-size:11px}.ubot-chips{display:flex;flex-direction:column;align-items:flex-start;gap:6px;font-size:12px;color:#625d70}.ubot-chips span{padding-left:4px}.ubot-chips button{min-height:36px;padding:8px 12px;border:1px solid #ddd7ff;border-radius:16px;background:#fff;color:#625b78;font-size:13px;line-height:1.5;text-align:left}.ubot-chips button:not(:disabled):hover{background:#faf8ff;border-color:#6549f7}.ubot-chips button:disabled{opacity:.5}
 
+/* Failed reply: retry icon to the right of the bubble, 44px tap target. */
+.ubot-retry-row{display:flex;align-items:center;gap:4px;max-width:100%}.ubot-retry-row .ubot-bubble{flex-shrink:1;min-width:0}.ubot-retry{display:grid;place-items:center;flex-shrink:0;width:44px;height:44px;border:0;border-radius:50%;background:transparent;color:#625d70;cursor:pointer}.ubot-retry:hover{background:#fff}.ubot-retry:active{transform:scale(.92)}
+
 /* Splash mascot and squash/stretch language, scaled to the conversation. */
 .thinking{display:grid;grid-template-columns:72px;justify-items:center;align-self:flex-start;gap:2px;width:72px;padding:16px 0 8px;color:#74678e;flex-shrink:0;}
 .thinkingMascot{display:block;width:72px;height:66px;object-fit:contain;transform-origin:center bottom;animation:thinkingFloat 850ms cubic-bezier(.45,0,.55,1) infinite;}

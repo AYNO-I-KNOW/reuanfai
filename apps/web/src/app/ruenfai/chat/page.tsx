@@ -1,5 +1,5 @@
 "use client";
-import {ChevronLeft, ArrowUp} from "lucide-react";
+import {ChevronLeft, ArrowUp, RotateCcw} from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import {Fragment,useEffect,useRef,useState} from "react";
@@ -21,7 +21,8 @@ function groupCitations(citations: Citation[]): SourceGroup[] {
   }
   return [...groups.values()].map((group) => ({ ...group, pages: [...group.pages].sort((a, b) => a - b) }));
 }
-type Message = { text: string; user: boolean; kind?: string; label?: string | null; citations?: Citation[]; suggestions?: string[]; emergency?: boolean };
+// retry = query to resend; set only on failed replies (rate limit, error, timeout)
+type Message = { text: string; user: boolean; kind?: string; label?: string | null; citations?: Citation[]; suggestions?: string[]; emergency?: boolean; retry?: string };
 const BOT_NAME = "ผู้ช่วยส่วนตัว";
 const chipsHeading = (message: Message) => (message.kind === "smalltalk" || message.kind === "topic" ? "ลองถามเรื่องเหล่านี้" : "หรือคุณหมายถึง");
 const RATE_LIMITED = "ตอนนี้มีคนถามเยอะ ลองใหม่อีกครั้งในอีกสักครู่นะคะ", FAILED = "ขออภัยค่ะ ตอนนี้ตอบคำถามไม่ได้ ลองใหม่อีกครั้งในอีกสักครู่นะคะ";
@@ -30,13 +31,13 @@ const ASK_TIMEOUT_MS = 30_000;
 async function ask(question: string, signal: AbortSignal): Promise<Message> {
   try {
     const res = await fetch("/api/kb/ask", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ question }), signal: AbortSignal.any([signal, AbortSignal.timeout(ASK_TIMEOUT_MS)]) });
-    if (res.status === 429) return { text: RATE_LIMITED, user: false };
+    if (res.status === 429) return { text: RATE_LIMITED, user: false, retry: question };
     const data = res.ok ? await res.json() : null;
-    if (typeof data?.answer !== "string") return { text: FAILED, user: false };
+    if (typeof data?.answer !== "string") return { text: FAILED, user: false, retry: question };
     return { text: data.answer, user: false, kind: data.kind, label: data.label, citations: Array.isArray(data.citations) ? data.citations : [], suggestions: Array.isArray(data.suggestions) ? data.suggestions : [], emergency: data.emergency === true };
   } catch (error) {
     if (signal.aborted) throw error;
-    return { text: FAILED, user: false };
+    return { text: FAILED, user: false, retry: question };
   }
 }
 
@@ -100,20 +101,30 @@ export default function ChatPage() {
     [],
   );
   // text = shown as the mother's bubble; query = what /api/kb/ask receives (differs for preset chips)
-  async function send(text: string, fromSuggestion = false, query = text) {
+  function send(text: string, fromSuggestion = false, query = text) {
     const trimmed = text.trim();
     if (!trimmed || pending.current) return;
     following.current = true;
     setMessages((previous) => [...previous, { text: trimmed, user: true }]);
-    setReplying(true);
     if (!fromSuggestion) {
       setDraft("");
       input.current?.focus();
     }
+    reply(query);
+  }
+  // retry drops the failed reply (always the last message) and asks again; the mother's bubble stays
+  function retry(query: string) {
+    if (pending.current) return;
+    following.current = true;
+    setMessages((previous) => previous.slice(0, -1));
+    reply(query);
+  }
+  async function reply(query: string) {
+    setReplying(true);
     const controller = (pending.current = new AbortController());
     try {
-      const reply = await ask(query.trim(), controller.signal);
-      setMessages((previous) => [...previous, reply]);
+      const answer = await ask(query.trim(), controller.signal);
+      setMessages((previous) => [...previous, answer]);
       setReplying(false);
       pending.current = null;
     } catch {
@@ -162,7 +173,14 @@ export default function ChatPage() {
           return (
             <div key={index} className={s["ubot-reply"]}>
               <span className={s["ubot-label"]}>{message.label ? `${BOT_NAME} · ${message.label}` : BOT_NAME}</span>
-              {bubble}
+              {message.retry && index === messages.length - 1 && !replying ? (
+                <div className={s["ubot-retry-row"]}>
+                  {bubble}
+                  <button type="button" className={s["ubot-retry"]} aria-label="ลองใหม่" onClick={() => retry(message.retry!)}>
+                    <RotateCcw size={20} strokeWidth={1.75} />
+                  </button>
+                </div>
+              ) : bubble}
               {!!message.citations?.length && (
                 <ul className={s["ubot-cites"]} aria-label={'ที่มา'}>
                   {groupCitations(message.citations).map((group) => (
