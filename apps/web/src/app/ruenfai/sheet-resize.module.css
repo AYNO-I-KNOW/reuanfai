@@ -4,3 +4,5 @@
 .handle span{width:36px;height:4px;border-radius:999px;background:#d0cadb}
 .handle:disabled{cursor:default}.handle:focus-visible{outline:2px solid #6549f7;outline-offset:0;border-radius:12px}
 @media(prefers-reduced-motion:reduce){.resizable{transition:none!important}}
+
+.resizable[data-sheet-edge-expanded][data-sheet-expanded]{max-height:var(--sheet-available-height,100dvh)!important;border-top-left-radius:0;border-top-right-radius:0}

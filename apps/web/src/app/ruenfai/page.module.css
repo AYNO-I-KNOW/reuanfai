@@ -181,3 +181,5 @@
 .serviceActionRow{border:0;border-radius:12px;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer}
 .serviceActionRow:active{background:#f6f3ff}.serviceStatusRow{cursor:default}.serviceActionRow .pill,.serviceStatusRow .pill{margin:0}
 .appointmentDateLink{width:100%;padding:0;border:0;background:transparent;text-align:left;font:inherit;cursor:pointer}
+
+.description .journalPreview{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;white-space:normal;overflow-wrap:anywhere}

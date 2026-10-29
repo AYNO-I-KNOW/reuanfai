@@ -41,3 +41,16 @@
 @media(prefers-reduced-motion:reduce){.confirmDialog,.confirmDialog[open]{transition:none;translate:none;}}
 
 .fields{gap:var(--rf-field-group-gap)}.fields>div>label{margin-bottom:var(--rf-field-label-gap)}.timeGrid{gap:var(--rf-space-2)}
+
+/* Booking uses the existing service illustrations from the mother app. */
+.services legend{margin-bottom:8px}
+.services>label.serviceOption{align-items:center;gap:12px;min-height:68px;padding:8px 0;border-radius:16px;cursor:pointer}
+.services>label.serviceOption>span:first-child{margin-top:0}
+.services>label.serviceOption>span:last-child{flex:1;min-width:0}
+.serviceContent{display:flex;align-items:center;gap:12px;min-width:0}
+.serviceImage{display:grid;place-items:center;flex:0 0 48px;width:48px;height:48px;overflow:hidden;border-radius:50%;background:#f4f1fb}
+.serviceImage img{display:block;width:48px;height:48px;object-fit:contain}
+.serviceName{min-width:0;line-height:22px}
+.serviceName .inlineStatus{display:inline}
+.services>label.serviceOption:has(input:disabled){cursor:default}
+.serviceOption:has(input:disabled) .serviceImage{opacity:.55}
