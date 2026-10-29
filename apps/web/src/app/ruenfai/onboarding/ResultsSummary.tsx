@@ -32,6 +32,6 @@ export default function ResultsSummary({animateFromProcessing=false,onBook}:{ani
     </article>)}
    </section>
   </section>
-  <footer className={s.footer}><Link className={s.secondary} href="/ruenfai">กลับสู่หน้าแรก</Link><button type="button" className={s.primary} onClick={onBook}>จองคิว</button></footer>
+  <footer className={s.footer}><Link className={s.secondary} href="/ruenfai" prefetch={false}>กลับสู่หน้าแรก</Link><button type="button" className={s.primary} onClick={onBook}>จองคิว</button></footer>
  </main>;
 }

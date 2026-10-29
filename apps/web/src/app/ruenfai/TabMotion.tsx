@@ -2,6 +2,7 @@
 import {createContext,useContext,useEffect,useRef,useState,type CSSProperties,type ReactNode} from 'react';
 import {usePathname,useRouter} from 'next/navigation';
 import s from './tab-motion.module.css';
+import {isOnboarded} from './onboarding/onboarded';
 export const routes=['/ruenfai','/ruenfai/appointments','/ruenfai/medicines','/ruenfai/journal'];
 const Context=createContext<(target:string)=>void>(()=>{});
 export const useTabNavigation=()=>useContext(Context);
@@ -13,7 +14,8 @@ export default function TabMotion({children,navigation}:{children:ReactNode;navi
  const pending=useRef<string|null>(null);
  const previous=useRef(path),busy=useRef(false),timer=useRef<ReturnType<typeof setTimeout>|null>(null);
  useEffect(()=>()=>{if(timer.current)clearTimeout(timer.current)},[]);
- useEffect(()=>{routes.forEach(route=>router.prefetch(route))},[router]);
+ // Prefetching before onboarding caches proxy.ts's redirect to /ruenfai/onboarding, which then outlives the cookie; re-checked on every path change.
+ useEffect(()=>{if(isOnboarded())routes.forEach(route=>router.prefetch(route))},[router,path]);
  useEffect(()=>{
   if(previous.current===path)return;
   const oldPath=previous.current;const before=routes.indexOf(oldPath),after=routes.indexOf(path);previous.current=path;
