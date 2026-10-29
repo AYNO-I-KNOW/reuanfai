@@ -156,7 +156,7 @@ docs/
 
 ## 7. Env
 
-ดูใน `/.env.example` — api ใช้: `SUPABASE_*`, `LINE_*`, `SESSION_JWT_SECRET`, `CRON_SECRET` (AI-1/AI-2 ผ่าน AI Gateway ยังไม่ implement: `AI_GATEWAY_API_KEY`) · KB ต้นแบบใช้ (ไม่ผ่าน Gateway): `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_DB_URL` (เฉพาะ psql migrate), `AI_API_KEY`, `AI_BASE_URL` (ใช้ทั้งแชทและ embedding), `AI_MODEL`, `AI_FALLBACK_MODEL`, `AI_REASONING_EFFORT`, `AI_EMBEDDING_MODEL` (default `gemini-embedding-2`), `KB_ASK_ENABLED` ส่วน web ใช้: `API_ORIGIN` (server-only, ปลายทางของ rewrite), `NEXT_PUBLIC_LIFF_ID`
+ดูใน `/.env.example` — api ใช้: `SUPABASE_*`, `LINE_*`, `SESSION_JWT_SECRET`, `CRON_SECRET` (AI-1/AI-2 ผ่าน AI Gateway ยังไม่ implement: `AI_GATEWAY_API_KEY`) · KB ต้นแบบใช้ (ไม่ผ่าน Gateway): `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_DB_URL` (เฉพาะ psql migrate), `AI_API_KEY`, `AI_BASE_URL` (ใช้ทั้งแชทและ embedding), `AI_MODEL`, `AI_FALLBACK_MODEL`, `AI_FALLBACK_BASE_URL`, `AI_FALLBACK_API_KEY`, `AI_FALLBACK_REASONING_EFFORT` (ตัวสำรอง TokenMe, ADR-0021), `AI_REASONING_EFFORT`, `AI_EMBEDDING_MODEL` (default `gemini-embedding-2`), `KB_ASK_ENABLED` ส่วน web ใช้: `API_ORIGIN` (server-only, ปลายทางของ rewrite), `NEXT_PUBLIC_LIFF_ID`
 
 ## 8. Deploy
 

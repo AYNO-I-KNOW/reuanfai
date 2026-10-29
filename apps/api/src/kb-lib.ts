@@ -218,11 +218,13 @@ export function createRateLimiter(
 // Thai PDFs often encode ำ as ํ (+ tone mark) + า → ILIKE on "คำ"/"น้ำ" misses "คํา"/"นํ้า"; fold both stored text and questions
 export const foldThai = (text: string): string => text.replace(/ํ([่-๋]?)า/g, '$1ำ').normalize('NFC')
 
-// flash-lite still prints fields the source marks "-" despite the prompt → drop "- หัวข้อ: -" lines in code
-export const dropEmptyFields = (answer: string): string =>
+// models print fields the source marks "-" and skip/garble the blank line between sections despite the prompt →
+// drop empty items ("- -", legacy "- หัวข้อ: -") and blank lines, then put exactly one blank line before every non-item line (heading)
+export const tidyAnswer = (answer: string): string =>
   answer
     .split('\n')
-    .filter((line) => !/^\s*-\s*[^:\n]+:\s*-?\s*$/.test(line))
+    .filter((line) => line.trim() !== '' && !/^\s*-\s*(?:[^:\n]+:)?\s*-?\s*$/.test(line))
+    .map((line, i) => (i > 0 && !/^\s*-/.test(line) ? `\n${line}` : line))
     .join('\n')
     .trim()
 

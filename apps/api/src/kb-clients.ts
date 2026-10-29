@@ -27,12 +27,14 @@ const createSupabase = () =>
 let supabaseClient: ReturnType<typeof createSupabase> | undefined
 export const getSupabase = () => (supabaseClient ??= createSupabase())
 
-const createProvider = () => {
-  const env = getIngestEnv()
-  return createOpenAICompatible({ name: 'llm', baseURL: env.AI_BASE_URL, apiKey: env.AI_API_KEY })
-}
+const createProvider = (baseURL: string, apiKey: string) => createOpenAICompatible({ name: 'llm', baseURL, apiKey })
 
-export const getChatModel = (modelId?: string) => createProvider()(modelId ?? getAskEnv().AI_MODEL)
+// primary = AI_*; fallback = AI_FALLBACK_* (unset parts reuse the primary's endpoint/key)
+export function getChatModel(fallback: boolean) {
+  const env = getAskEnv()
+  if (!fallback) return createProvider(env.AI_BASE_URL, env.AI_API_KEY)(env.AI_MODEL)
+  return createProvider(env.AI_FALLBACK_BASE_URL ?? env.AI_BASE_URL, env.AI_FALLBACK_API_KEY ?? env.AI_API_KEY)(env.AI_FALLBACK_MODEL!)
+}
 
 // kb_chunks.embedding is vector(768); gemini-embedding-2 truncates to `dimensions` and returns it normalized
 export const EMBEDDING_DIMS = 768
@@ -44,8 +46,9 @@ const documentText = (value: string) => `title: none | text: ${value}`
 
 // no SDK retries: a user request must fail fast, and ingest does its own 429 backoff
 async function embed(values: string[]): Promise<number[][]> {
+  const env = getIngestEnv()
   const { embeddings } = await embedMany({
-    model: createProvider().embeddingModel(getIngestEnv().AI_EMBEDDING_MODEL),
+    model: createProvider(env.AI_BASE_URL, env.AI_API_KEY).embeddingModel(env.AI_EMBEDDING_MODEL),
     values,
     maxRetries: 0,
     abortSignal: AbortSignal.timeout(EMBED_TIMEOUT_MS),

@@ -19,7 +19,7 @@ import {
   expandContext,
   extractTerms,
   filterCitations,
-  dropEmptyFields,
+  tidyAnswer,
   foldThai,
   groupByPage,
   isRedFlag,
@@ -32,7 +32,8 @@ import {
 
 const MAX_BODY_BYTES = 4096
 // a full monograph answer (5 fields as bullets) + JSON wrapper; finishReason=length is an error, so keep headroom
-const MAX_OUTPUT_TOKENS = 1200
+// (TokenMe deepseek-v4-flash answers multi-drug questions at >1200 tokens)
+const MAX_OUTPUT_TOKENS = 2000
 const rateLimit = createRateLimiter([
   { windowMs: 60_000, max: 5 },
   { windowMs: 86_400_000, max: 100 },
@@ -136,7 +137,16 @@ const SYSTEM = `คุณอธิบายเนื้อหาจากเอ�
 - อธิบายสิ่งที่เอกสารระบุ ห้ามตัดสินหรือคัดกรองผู้ใช้ ห้ามวินิจฉัย ห้ามแนะนำยาหรือกำหนดขนาดยาเฉพาะบุคคล (ห้ามปรับขนาดตามอายุ น้ำหนัก หรืออาการของผู้ถาม) แต่ยกวิธีใช้และขนาดมาตรฐานที่เอกสารระบุมาได้ โดยบอกว่าเป็นไปตามเอกสาร เช่น "ตามบัญชียาหลักฯ" ไม่ใช่คำแนะนำส่วนตัว
 - ถ้าถามถึงยา/วิธีบำบัด/คำแนะนำรายการใด ให้ตอบครบทุกหัวข้อที่มีใน <chunk> ของรายการนั้น ไม่ใช่แค่ทวนคำถาม: สรรพคุณ/ข้อบ่งใช้ · วิธีใช้/ขนาด · ข้อห้ามใช้ · คำเตือน/ข้อควรระวัง · อาการไม่พึงประสงค์
 - ข้อห้ามใช้และคำเตือน/ข้อควรระวังเป็นข้อมูลความปลอดภัย ต้องใส่ทุกครั้งที่มีในเอกสาร แม้ผู้ใช้ถามแค่ "ใช้ทำอะไร" หรือ "สรรพคุณ" ก็ตาม คำตอบที่มีแค่บรรทัดสรรพคุณถือว่าไม่ครบ ข้ามหัวข้อที่เป็น "-" หรือไม่มีในเอกสาร
-- จัดรูปแบบเป็นบรรทัด "- ชื่อหัวข้อ: เนื้อหา" สั้น กระชับ แยกบรรทัดด้วยอักขระ \\n ใน JSON string
+- รูปแบบคำตอบ (ทุกคำตอบต้องเป็นแบบนี้):
+  · คำถามแบบ "ได้ไหม/ใช้ได้หรือไม่/ควรไหม" บรรทัดแรกตอบตรง ๆ ตามเอกสาร 1 ประโยค (รูปแบบ "ตามเอกสาร <ชื่อรายการ> <ได้/ห้าม/ไม่ระบุ>…") แล้วตามด้วยหัวข้อครบทุกหัวข้อของรายการนั้นตามกฎด้านบน ห้ามตอบแค่หัวข้อที่ตรงคำถาม
+  · หัวข้ออยู่บรรทัดของตัวเอง ไม่มีเครื่องหมายนำหน้าหรือต่อท้าย ตามด้วยรายการทีละบรรทัดขึ้นต้นด้วย "- " · เว้น 1 บรรทัดว่างระหว่างหัวข้อ
+  · เรื่องยา/วิธีบำบัด ใช้หัวข้อตามลำดับนี้เท่านั้น ข้ามหัวข้อที่เอกสารไม่มีหรือเป็น "-" (ตัดทั้งหัวข้อ ห้ามเขียนว่า "ไม่พบข้อมูล"/"ไม่ระบุ"): สรรพคุณ, วิธีใช้และขนาด, ข้อห้ามใช้, ข้อควรระวัง, อาการไม่พึงประสงค์ · ห้ามตั้งหัวข้ออื่นเพิ่มเด็ดขาด: เงื่อนไขการใช้ยา/ผู้สั่งใช้ ใส่เป็นรายการใน "วิธีใช้และขนาด" · ข้อมูลอื่นใส่เป็นรายการในหัวข้อที่ใกล้ที่สุด
+  · คำตอบมีหลายรายการ (เช่น ยาหลายตัว) ใช้ชื่อรายการเป็นหัวข้อ แล้วนำรายการด้วยชื่อหัวข้อข้างต้น เช่น "- ข้อห้ามใช้: ..."
+  · เรื่องอื่น ตั้งหัวข้อสั้นตามเนื้อหา ไม่เกิน 4 หัวข้อ
+  · 1 รายการ = 1 เรื่อง ประโยคสั้น · หลายกรณี (เช่น ขนาดยาตามอาการหรือชนิดยา) แยกรายการละกรณี ขึ้นต้นด้วยชื่อกรณีแล้วตามด้วย ":"
+  · ตัวเลข ขนาด หน่วย และระยะเวลาตรงตามเอกสาร
+  · ไม่ใช้ markdown อื่น (ไม่มี **, #, ตาราง, เลขข้อ) · ขึ้นบรรทัดด้วยอักขระ \\n ใน JSON string
+  · ตัวอย่างโครง: "สรรพคุณ\\n- <ข้อความ>\\n\\nวิธีใช้และขนาด\\n- <กรณี>: <ข้อความ>\\n- <กรณี>: <ข้อความ>\\n\\nข้อห้ามใช้\\n- <ข้อความ>"
 - <chunk> ของหน้าที่ติดกันอาจเป็นเนื้อหาต่อเนื่องของรายการเดียวกัน ให้รวมข้อมูลของรายการที่ถามจากทุกหน้า (ชื่อรายการอาจอยู่หน้าหนึ่ง ส่วนวิธีใช้ ข้อห้ามใช้ ข้อควรระวังอยู่หน้าถัดไป) และอย่าตอบแค่สรรพคุณถ้าเอกสารมีหัวข้ออื่นของรายการเดียวกัน
 - ถ้าเอกสารแผนไทยและ WHO/สากลขัดกัน ให้แสดงทั้งสองฝ่ายพร้อมที่มา ห้ามเลือกข้าง
 - ถ้า <chunk> ไม่มีคำตอบ ให้ตอบเป็นข้อความ "${NOT_FOUND}" ตรงตัวทุกตัวอักษร ไม่ต่อท้ายหรือเพิ่มคำอธิบาย และไม่ใส่ citations
@@ -183,27 +193,32 @@ function parseAnswer(text: string) {
 const isTransient = (err: unknown) =>
   APICallError.isInstance(err) ? err.isRetryable : err instanceof Error && err.name === 'TimeoutError'
 
+// transient failure of the primary → the remaining calls go to the fallback (another provider rides out a Gemini outage, ADR-0021);
+// the switch itself needs no backoff, a retry against the same endpoint does
 async function askModel(prompt: string, deadline: number) {
-  const { AI_MODEL, AI_FALLBACK_MODEL, AI_REASONING_EFFORT } = getAskEnv()
-  let model = AI_MODEL
+  const { AI_MODEL, AI_FALLBACK_MODEL, AI_REASONING_EFFORT, AI_FALLBACK_REASONING_EFFORT } = getAskEnv()
+  let fallback = false
+  let switched = false
   let lastError: unknown
   for (let call = 0; call < LLM_MAX_CALLS; call++) {
-    if (call > 0) {
+    if (call > 0 && !switched) {
       const delay = RETRY_DELAYS_MS[call - 1]! + Math.random() * 500
       if (Date.now() + delay + MIN_CALL_MS > deadline) break
       await sleep(delay)
     }
+    if (deadline - Date.now() < MIN_CALL_MS && call > 0) break
+    const model = fallback ? AI_FALLBACK_MODEL! : AI_MODEL
     takeLlmCall()
     try {
       const result = await generateText({
-        model: getChatModel(model),
+        model: getChatModel(fallback),
         // never pass `tools`: no web search/grounding — Gemini OpenAI-compat only searches when a google_search tool is passed
         instructions: SYSTEM,
         prompt,
         maxOutputTokens: MAX_OUTPUT_TOKENS,
         // flash-lite at default temperature sometimes answers only the first field of a monograph
         temperature: 0,
-        providerOptions: { llm: { reasoningEffort: AI_REASONING_EFFORT } },
+        providerOptions: { llm: { reasoningEffort: fallback ? (AI_FALLBACK_REASONING_EFFORT ?? AI_REASONING_EFFORT) : AI_REASONING_EFFORT } },
         abortSignal: AbortSignal.timeout(Math.max(0, Math.min(LLM_TIMEOUT_MS, deadline - Date.now()))),
         // this loop owns retries: SDK retries would wrap errors in RetryError and bypass takeLlmCall
         maxRetries: 0,
@@ -218,10 +233,10 @@ async function askModel(prompt: string, deadline: number) {
     } catch (err) {
       if (!isTransient(err)) throw err
       lastError = err
-      // 429 on the primary → spend the remaining calls on the fallback model
-      if (AI_FALLBACK_MODEL && APICallError.isInstance(err) && err.statusCode === 429) model = AI_FALLBACK_MODEL
     }
     console.error(`kb/ask llm call ${call + 1}/${LLM_MAX_CALLS} failed (${model}): ${errLine(lastError)}`)
+    switched = !fallback && !!AI_FALLBACK_MODEL
+    if (switched) fallback = true
   }
   throw lastError
 }
@@ -348,7 +363,7 @@ export const kb = new Hono().post(
       if (srcError) throw srcError
       const citations = enrichCitations(valid, sourceRows.parse(sources ?? []))
       if (!citations.length) return decline('not_found', NOT_FOUND_TEXT, queryEmbedding, output.model)
-      const answer = dropEmptyFields(output.answer)
+      const answer = tidyAnswer(output.answer)
       if (!answer) return decline('not_found', NOT_FOUND_TEXT, queryEmbedding, output.model)
       // a fallback-model answer must not sit 24h under the primary model's key
       return ok({ kind: 'answer', label: LABEL, answer, citations, model: output.model, suggestions: [] }, output.model === AI_MODEL ? ANSWER_TTL_MS : NOT_FOUND_TTL_MS)

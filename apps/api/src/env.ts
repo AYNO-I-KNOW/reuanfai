@@ -10,11 +10,15 @@ const baseSchema = z.object({
   AI_EMBEDDING_MODEL: z.string().min(1).default('gemini-embedding-2'),
 })
 
-// POST /kb/ask additionally calls the chat model (Gemini now, TokenMe later)
+// POST /kb/ask additionally calls the chat model (Gemini primary, optional fallback on another OpenAI-compatible provider, ADR-0021)
 const askSchema = baseSchema.extend({
   AI_MODEL: z.string().min(1),
-  // same base URL/key; used once per attempt when AI_MODEL answers HTTP 429
+  // takes over the remaining calls after any transient failure of AI_MODEL (5xx/429/timeout/network/invalid JSON)
   AI_FALLBACK_MODEL: z.string().min(1).optional(),
+  // fallback provider; each unset value falls back to the primary's (AI_BASE_URL / AI_API_KEY / AI_REASONING_EFFORT)
+  AI_FALLBACK_BASE_URL: z.url().optional(),
+  AI_FALLBACK_API_KEY: z.string().min(1).optional(),
+  AI_FALLBACK_REASONING_EFFORT: z.string().min(1).optional(),
   // thinking models (Gemini 3.x) burn maxOutputTokens on reasoning → truncated JSON; 'none' disables it
   AI_REASONING_EFFORT: z.string().min(1).optional(),
 })
