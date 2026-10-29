@@ -29,7 +29,8 @@ export default function TabMotion({children,navigation}:{children:ReactNode;navi
   if((!chatTransition&&(before<0||after<0))||window.matchMedia('(prefers-reduced-motion: reduce)').matches){router.push(target);return;}
   busy.current=true;setReturnHome(target==='/ruenfai');setDirection(after<0?1:before<0?-1:after>before?1:-1);setPhase(before<0?'detailOut':path==='/ruenfai'?'homeOut':'out');
   router.prefetch(target);
-  timer.current=setTimeout(()=>{setPhase('waiting');router.push(target)},path==='/ruenfai'?260:180);
+  // ponytail: a redirect back to the same pathname (proxy.ts) never fires the path effect, so release the 'waiting' phase after 1.5s
+  timer.current=setTimeout(()=>{setPhase('waiting');router.push(target);timer.current=setTimeout(()=>{setPhase('idle');busy.current=false},1500)},path==='/ruenfai'?260:180);
  }
  const isTab=routes.includes(path);
  return <Context.Provider value={navigate}><div onClickCapture={event=>{if(event.defaultPrevented||event.button!==0||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey)return;const anchor=(event.target as HTMLElement).closest<HTMLAnchorElement>('a[href]');if(!anchor||anchor.target||anchor.hasAttribute('download')||anchor.getAttribute('aria-disabled')==='true')return;const url=new URL(anchor.href);if(url.origin!==window.location.origin||!url.pathname.startsWith('/ruenfai')||url.pathname===path)return;event.preventDefault();navigate(url.pathname+url.search+url.hash);}} className={`${s.shell} ${isTab?s.sharedBackground:path==='/ruenfai/chat'?s.chatBackground:s.detailBackground}`}><div className={`${s.body} ${s[phase]??''}`} data-tab-root={isTab?'true':undefined} data-home-return={returnHome?'true':undefined} data-phase={phase} style={{'--tab-direction':direction} as CSSProperties} inert={phase!=='idle'}>{children}</div>{navigation}</div></Context.Provider>

@@ -1,8 +1,10 @@
 'use client';
 
+import {useEffect} from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import s from './results.module.css';
+import {markOnboarded} from './onboarded';
 
 // Supplied result-screen examples. These are not calculated from questionnaire answers.
 const procedures=[
@@ -15,6 +17,8 @@ const procedures=[
 ] as const;
 
 export default function ResultsSummary({animateFromProcessing=false,onBook}:{animateFromProcessing?:boolean;onBook?:()=>void}){
+ // reaching the results screen = onboarding done
+ useEffect(markOnboarded,[]);
  return <main className={`${s.page} ${animateFromProcessing?s.fromProcessing:''}`}>
   <section className={s.content}>
    <div className={s.hero}>
