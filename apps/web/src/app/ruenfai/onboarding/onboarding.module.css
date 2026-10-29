@@ -81,6 +81,7 @@
 .stepTitle>span{font-size:14px;line-height:22px;color:#625D70;margin-bottom:8px}.stepTitle h1{font-size:24px;line-height:34px;font-weight:600;color:#27232F}.flowHeaderRow>small{font-size:14px;line-height:22px;font-weight:500;color:#4D465C;white-space:nowrap}
 
 .calendarSummary{color:#27232F;font-weight:500}.elapsedDays{color:#625D70;font-weight:400;display:inline-block}
+.stageForm .dateField>label{display:block}
 
 /* Supplied Figma choice: 343 x 56 at 375px, 16px inner padding/gap. */
 .wizardFields .choice{min-height:56px;padding:16px;gap:16px;border-radius:99px}.choiceMark{width:24px;height:24px}
