@@ -1,3 +1,4 @@
+import { setTimeout as sleep } from 'node:timers/promises'
 import { Hono, type Context } from 'hono'
 import { getConnInfo } from '@hono/node-server/conninfo'
 import { bodyLimit } from 'hono/body-limit'
@@ -45,7 +46,13 @@ const answerCache = createAnswerCache<AnswerBody>({ max: 500, ttlMs: ANSWER_TTL_
 // global caps (per process): in-flight embed+LLM work, and LLM calls per UTC day (Gemini free tier = 500 RPD)
 const MAX_IN_FLIGHT = 4
 const MAX_LLM_CALLS_PER_DAY = 400
-const LLM_TIMEOUT_MS = 20_000
+// Gemini free tier answers 503 or hangs on ~20–50% of calls (measured 2026-10-30) → short per-call timeout + retries;
+// a successful call takes 1–6s. The whole request must finish before the web gives up (ASK_TIMEOUT_MS = 30s in chat/page.tsx).
+const LLM_TIMEOUT_MS = 8_000
+const ASK_BUDGET_MS = 25_000
+const LLM_MAX_CALLS = 3
+const RETRY_DELAYS_MS = [1_000, 2_000]
+const MIN_CALL_MS = 3_000
 let inFlight = 0
 let budgetDay = ''
 let llmCallsToday = 0
@@ -171,40 +178,52 @@ function parseAnswer(text: string) {
   }
 }
 
-async function askModel(prompt: string, attempts = 2) {
-  const generate = (model: string) =>
-    generateText({
-      model: getChatModel(model),
-      // never pass `tools`: no web search/grounding — Gemini OpenAI-compat only searches when a google_search tool is passed
-      instructions: SYSTEM,
-      prompt,
-      maxOutputTokens: MAX_OUTPUT_TOKENS,
-      // flash-lite at default temperature sometimes answers only the first field of a monograph
-      temperature: 0,
-      providerOptions: { llm: { reasoningEffort: getAskEnv().AI_REASONING_EFFORT } },
-      abortSignal: AbortSignal.timeout(LLM_TIMEOUT_MS),
-      // default 2 retries wrap a 429 in RetryError → the fallback check below would never match and takeLlmCall would undercount
-      maxRetries: 0,
-    })
-  for (let attempt = 1; attempt <= attempts; attempt++) {
-    const { AI_MODEL, AI_FALLBACK_MODEL } = getAskEnv()
-    let model = AI_MODEL
-    takeLlmCall()
-    const result = await generate(model).catch((err) => {
-      if (!AI_FALLBACK_MODEL || !APICallError.isInstance(err) || err.statusCode !== 429) throw err
-      console.error('kb/ask primary model 429, retrying with fallback model')
-      model = AI_FALLBACK_MODEL
-      takeLlmCall()
-      return generate(model)
-    })
-    // truncated output (reasoning ate the budget) would fail again with the same budget → do not burn another call
-    if (result.finishReason === 'length') {
-      throw new Error('model output truncated (finishReason=length); raise MAX_OUTPUT_TOKENS or lower AI_REASONING_EFFORT')
+// Gemini troubleshooting: retry 408/429/5xx (APICallError.isRetryable, incl. network errors) and timeouts with backoff + jitter;
+// other 4xx (bad key/body) and truncated output would fail the same way again → thrown at once
+const isTransient = (err: unknown) =>
+  APICallError.isInstance(err) ? err.isRetryable : err instanceof Error && err.name === 'TimeoutError'
+
+async function askModel(prompt: string, deadline: number) {
+  const { AI_MODEL, AI_FALLBACK_MODEL, AI_REASONING_EFFORT } = getAskEnv()
+  let model = AI_MODEL
+  let lastError: unknown
+  for (let call = 0; call < LLM_MAX_CALLS; call++) {
+    if (call > 0) {
+      const delay = RETRY_DELAYS_MS[call - 1]! + Math.random() * 500
+      if (Date.now() + delay + MIN_CALL_MS > deadline) break
+      await sleep(delay)
     }
-    const answer = parseAnswer(result.text)
-    if (answer) return { ...answer, model }
+    takeLlmCall()
+    try {
+      const result = await generateText({
+        model: getChatModel(model),
+        // never pass `tools`: no web search/grounding — Gemini OpenAI-compat only searches when a google_search tool is passed
+        instructions: SYSTEM,
+        prompt,
+        maxOutputTokens: MAX_OUTPUT_TOKENS,
+        // flash-lite at default temperature sometimes answers only the first field of a monograph
+        temperature: 0,
+        providerOptions: { llm: { reasoningEffort: AI_REASONING_EFFORT } },
+        abortSignal: AbortSignal.timeout(Math.max(0, Math.min(LLM_TIMEOUT_MS, deadline - Date.now()))),
+        // this loop owns retries: SDK retries would wrap errors in RetryError and bypass takeLlmCall
+        maxRetries: 0,
+      })
+      // truncated output (reasoning ate the budget) would fail again with the same budget → do not burn another call
+      if (result.finishReason === 'length') {
+        throw new Error('model output truncated (finishReason=length); raise MAX_OUTPUT_TOKENS or lower AI_REASONING_EFFORT')
+      }
+      const answer = parseAnswer(result.text)
+      if (answer) return { ...answer, model }
+      lastError = new Error('model returned invalid JSON')
+    } catch (err) {
+      if (!isTransient(err)) throw err
+      lastError = err
+      // 429 on the primary → spend the remaining calls on the fallback model
+      if (AI_FALLBACK_MODEL && APICallError.isInstance(err) && err.statusCode === 429) model = AI_FALLBACK_MODEL
+    }
+    console.error(`kb/ask llm call ${call + 1}/${LLM_MAX_CALLS} failed (${model}): ${errLine(lastError)}`)
   }
-  throw new Error(`model returned invalid JSON after ${attempts} attempts`)
+  throw lastError
 }
 
 const ERROR_MESSAGE = {
@@ -246,6 +265,7 @@ export const kb = new Hono().post(
     onError: (c) => c.json({ error: 'validation' as const, message: 'request body too large' }, 422),
   }),
   async (c) => {
+    const deadline = Date.now() + ASK_BUDGET_MS
     const body = askBody.safeParse(await c.req.json().catch(() => null))
     if (!body.success) return c.json({ error: 'validation' as const, message: 'invalid request body' }, 422)
     // < > stripped so the question cannot open/close prompt tags; foldThai matches how chunks were stored
@@ -315,7 +335,7 @@ export const kb = new Hono().post(
         )
         .join('\n')
       failure = 'ai_unavailable'
-      const output = await askModel(`${context}\n\n<question>${question}</question>`)
+      const output = await askModel(`${context}\n\n<question>${question}</question>`, deadline)
 
       const valid = output.answer.trim() === NOT_FOUND ? [] : filterCitations(output.citations, chunks)
       if (!valid.length) return decline('not_found', NOT_FOUND_TEXT, queryEmbedding, output.model)
