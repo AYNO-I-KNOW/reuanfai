@@ -106,3 +106,15 @@
 .shareLaunch>button{display:flex;align-items:center;justify-content:center;gap:6px;width:auto;min-width:44px;height:44px;min-height:44px;padding:0 12px;border:0;border-radius:99px;background:#8870c8;color:#fff;font:500 12px/18px 'ReuanFai UI',sans-serif;white-space:nowrap;flex-shrink:0}.shareLaunch>button:hover{background:#765cb7}.shareLaunch>button:active{transform:scale(.97)}.shareLaunch>button>svg{flex-shrink:0;color:inherit}
 
 .exportForm{display:grid;gap:24px;padding:8px 0 4px}.exportDates{display:grid;gap:24px}.exportDates .healthField{display:grid;gap:8px;font:500 16px/24px 'ReuanFai UI',sans-serif}.exportFile{display:flex;align-items:center;gap:12px;padding:16px;background:#f6f3fd;border-radius:16px;color:#6549f7}.exportFile>div{display:grid;gap:4px}.exportFile strong{font:500 16px/24px 'ReuanFai UI',sans-serif}.exportFile span{font:400 14px/22px 'ReuanFai UI',sans-serif;color:#82798e}.exportForm>.save{width:100%;min-height:48px}
+
+/* One spacing rhythm; collapsed conditional fields take no extra gap. */
+.healthForm{row-gap:24px;align-content:start}
+.healthForm .healthSection{gap:0;align-content:start}
+.healthSection> :not(.reveal)+ :not(.reveal),.healthSection>.reveal+ :not(.reveal){margin-top:24px}
+.healthForm .healthField{display:block}
+.healthForm .healthField legend{margin-bottom:8px}
+.healthSection>.reveal{margin-top:0;padding-top:0;transition:grid-template-rows 360ms cubic-bezier(.4,0,.2,1),padding-top 360ms cubic-bezier(.4,0,.2,1),opacity 240ms ease,visibility 0s linear 360ms}
+.healthSection>.reveal[data-open=true]{margin-top:0;padding-top:24px;transition:grid-template-rows 360ms cubic-bezier(.4,0,.2,1),padding-top 360ms cubic-bezier(.4,0,.2,1),opacity 240ms ease,visibility 0s}
+.healthForm .revealContent{gap:24px}
+@media(prefers-reduced-motion:reduce){.healthSection>.reveal,.healthSection>.reveal[data-open=true]{transition:none}}
+.healthForm .healthSection>.systemCheck{margin-top:24px!important}
