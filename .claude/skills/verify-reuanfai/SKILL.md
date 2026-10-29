@@ -42,7 +42,7 @@ node $S/scripts/drive.mjs path/to/x.mjs --headed
 - context: locale `th-TH`, timezone `Asia/Bangkok`, Chrome (`channel: 'chrome'`, หรือ `CHROME_PATH=<binary>`); `BASE_URL` ที่ไม่ใช่ localhost ถูกปฏิเสธ และ request ออกนอก localhost ถูก abort + บันทึก
 - Exit code 0 = ผ่านทุก step, 1 = มี step ล้มเหลว
 - ต้องใช้ selector ที่อยู่ใน `features/*.md` (role/name จริงจาก source); อ่าน `features/README.md` ก่อน แล้วเปิดไฟล์ feature ที่ตรง
-- Journey ที่มี: `splash` และ `booking` (PASS ทั้งคู่). ที่เหลือ (`onboarding-screening`, `payment`, `clinic-dashboard`, `department-dashboard`) มี recipe ใน features/ แต่ยังไม่ได้เขียนเป็นไฟล์ journey และยังไม่ได้รัน
+- Journey ที่มี: `splash`, `booking` และ `onboarding` (PASS ทั้งหมด; `onboarding` ผ่านทั้ง dev และ `next start`). ที่เหลือ (`payment`, `clinic-dashboard`, `department-dashboard`) มี recipe ใน features/ แต่ยังไม่ได้เขียนเป็นไฟล์ journey และยังไม่ได้รัน
 
 ## Evidence
 
