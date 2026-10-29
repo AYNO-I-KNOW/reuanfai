@@ -24,6 +24,9 @@ export default async function ({page, step, assert, url}) {
 
   // Enter like a user: home -> "นัดหมาย" tab -> "ทับหม้อเกลือ" card (the only "จองคิว" card in seed data).
   await step('open-home-and-appointments-tab', async () => {
+    // Precondition: returning mother. proxy.ts redirects /ruenfai to onboarding until the rf_onboarded cookie exists
+    // (set by markOnboarded() at the end of onboarding, which is covered by onboarding-screening, not this journey).
+    await page.context().addCookies([{name: 'rf_onboarded', value: '1', url: url('/')}]);
     await page.goto(url('/ruenfai'));
     await page.getByRole('status', {name: 'กำลังเปิดเรือนไฟ'}).waitFor({state: 'detached', timeout: 20_000});
     await page.getByRole('navigation', {name: 'เมนูหลัก'}).getByRole('link', {name: 'นัดหมาย'}).click();
@@ -32,7 +35,7 @@ export default async function ({page, step, assert, url}) {
   });
 
   await step('choose-booking-card', async () => {
-    await page.getByRole('button', {name: /^ทับหม้อเกลือ.*จองคิว$/}).click();
+    await page.getByRole('button', {name: 'จองคิว ทับหม้อเกลือ', exact: true}).click();
     await page.getByRole('heading', {name: 'จองคิวรับบริการ', level: 1}).waitFor();
   });
 
@@ -73,16 +76,10 @@ export default async function ({page, step, assert, url}) {
 
   await step('second-view-appointments-after-reload', async () => {
     await page.goto(url('/ruenfai/appointments'));
-    const when = await page.evaluate(({date, time}) => {
-      const d = new Date(`${date}T${time}:00+07:00`);
-      return `${d.toLocaleDateString('th-TH', {timeZone: 'Asia/Bangkok', day: 'numeric', month: 'short'})} · ${d.toLocaleTimeString('th-TH', {timeZone: 'Asia/Bangkok', hour: '2-digit', minute: '2-digit', hour12: false})} น.`;
-    }, {date, time});
-    const card = page.getByRole('button', {name: new RegExp(when.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))});
-    await card.waitFor();
-    assert((await card.innerText()).includes('นวดแผนไทย'), 'card shows the service');
-    await card.click();
-    const detail = page.getByRole('dialog', {name: 'รายละเอียดนัดหมาย'});
-    await detail.getByText(UNIT).waitFor();
-    assert((await detail.innerText()).includes('นวดแผนไทย'), 'detail dialog shows the service');
+    const day = await page.evaluate(date => new Date(`${date}T12:00:00+07:00`).toLocaleDateString('th-TH', {timeZone: 'Asia/Bangkok', day: 'numeric', month: 'short'}), date);
+    // Bookings fold into their service card (appointments/page.tsx resolve()); pending cards show date/time, not the unit.
+    const card = page.getByRole('article').filter({has: page.getByRole('heading', {name: 'นวดแผนไทย', level: 2})});
+    await card.getByText(`ขอนัดวันที่ ${day} เวลา ${time} น.`).waitFor();
+    assert((await card.innerText()).includes('รอยืนยันนัด'), 'card shows status รอยืนยันนัด');
   });
 }

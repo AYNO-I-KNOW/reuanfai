@@ -27,8 +27,8 @@ Preconditions:
 
 ทั้ง flow (รันแล้ว PASS 7 step): `node .claude/skills/verify-reuanfai/scripts/drive.mjs booking`
 
-- **เปิดหน้านัดหมายจากหน้าแรก.** `page.goto(url('/ruenfai'))` รอ `getByRole('status', {name: 'กำลังเปิดเรือนไฟ'})` หาย (~3.5 วินาที) แล้ว `getByRole('navigation', {name: 'เมนูหลัก'}).getByRole('link', {name: 'นัดหมาย'}).click()` เห็น heading "นัดหมายทั้งหมด" และ `bookings` ว่าง
-- **เลือกการ์ดจองคิว.** `page.getByRole('button', {name: /^ทับหม้อเกลือ.*จองคิว$/}).click()` เห็น h1 "จองคิวรับบริการ"
+- **เปิดหน้านัดหมายจากหน้าแรก.** ตั้ง cookie `rf_onboarded=1` ก่อน (`proxy.ts` redirect `/ruenfai` ไป onboarding ถ้าไม่มี; precondition "คุณแม่ที่ onboard แล้ว") แล้ว `page.goto(url('/ruenfai'))` รอ `getByRole('status', {name: 'กำลังเปิดเรือนไฟ'})` หาย (~3.5 วินาที) แล้ว `getByRole('navigation', {name: 'เมนูหลัก'}).getByRole('link', {name: 'นัดหมาย'}).click()` เห็น heading "นัดหมายทั้งหมด" และ `bookings` ว่าง
+- **เลือกการ์ดจองคิว.** `page.getByRole('button', {name: 'จองคิว ทับหม้อเกลือ', exact: true}).click()` เห็น h1 "จองคิวรับบริการ"
 - **หน่วยบริการ.** `getByRole('button', {name: 'หน่วยบริการที่ต้องการจอง', exact: true}).click()` (เปิด dialog ชื่อเดียวกัน) แล้ว `getByRole('dialog', {name: 'หน่วยบริการที่ต้องการจอง'}).getByRole('button', {name: 'ศูนย์บริการแพทย์แผนไทย (ตัวอย่าง)'}).click()` ปุ่มแสดงชื่อหน่วย
 - **หัตถการ.** `getByRole('checkbox', {name: 'นวดไทย'}).check()` ช่องติ๊ก "นวดไทย" ถูกเลือก ("ก้อนเส้า", "อบสมุนไพร", "นวดกระตุ้นน้ำนม" ถูก disable)
 - **สิทธิ.** `getByRole('button', {name: 'สิทธิที่ใช้รับบริการ', exact: true}).click()` แล้ว `getByRole('dialog', {name: 'สิทธิที่ใช้รับบริการ'}).getByRole('button', {name: 'บัตรทอง', exact: true}).click()`
@@ -36,8 +36,8 @@ Preconditions:
 - **ช่วงเวลา.** `getByRole('button', {name: '10:00 น.', exact: true}).click()` ปุ่มมี `aria-pressed="true"`
 - **ยืนยัน.** `getByRole('button', {name: 'ยืนยันการจอง', exact: true}).click()` แล้วใน `getByRole('dialog', {name: 'ยืนยันการจองคิว?'})` กด `getByRole('button', {name: 'ยืนยัน', exact: true})` หลัง ~1.5 วินาทีเห็น h1 "ยืนยันการจองสำเร็จ"
 - **Side effect.** `page.evaluate(() => JSON.parse(localStorage.getItem('reuanfai-care-demo-v1')))` มี `bookings[0]` ตรง unit/date/time/rights/services และ `appointments` มี id เดียวกันสถานะ `รอยืนยันนัด`
-- **Second view.** `page.goto(url('/ruenfai/appointments'))` (reload เต็ม) การ์ด "นวดแผนไทย" (นวดไทย ที่จอง) ที่ข้อความมี `<วัน เดือนย่อ> · <HH:00> น.` อยู่ในรายการ กดแล้วเปิด dialog "รายละเอียดนัดหมาย" แสดงหน่วยและบริการ
-- **Cross-view `/clinic` (ยังไม่มี journey).** ใน context เดียวกัน `page.goto(url('/clinic'))` ด้วย viewport เดสก์ท็อป กด `getByRole('navigation', {name: 'เมนูหน่วยบริการ'}).getByRole('button', {name: 'นัดหมาย'})` ต้องเห็นคุณแม่ `M01` ที่ 10:00 (ไม่ได้ยืนยันด้วยการรัน)
+- **Second view.** `page.goto(url('/ruenfai/appointments'))` (reload เต็ม) `article` ที่มี heading "นวดแผนไทย" แสดง `ขอนัดวันที่ <วัน เดือนย่อ> เวลา <HH:00> น.` และ "รอยืนยันนัด" (การจองพับเข้าการ์ดบริการ ไม่มีการ์ดแยก; สถานะรอยืนยันไม่แสดงหน่วยบริการ)
+- **Cross-view `/clinic` (รันแล้ว PASS, ยังไม่เป็นไฟล์ journey).** context เดียวกัน viewport 1440x900 `page.goto(url('/clinic'))` → `getByRole('navigation', {name: 'เมนูหน่วยบริการ'}).getByRole('button', {name: 'นัดหมาย'})` เห็นแถวคุณแม่ (ชื่อเล่นจาก onboarding หรือ `M01`) สถานะ "รอยืนยันนัด" → `getByRole('button', {name: 'เปิดเคสคุณแม่ <ชื่อ>'})` ปุ่ม "ยืนยันนัด" disable จนเลือก `getByRole('combobox', {name: 'แพทย์ผู้ดูแล'})` (เรียก `scrollIntoViewIfNeeded()` ก่อนคลิก ไม่งั้นเมนูปิดตอน scroll) → กดยืนยัน: `appointments[].status` = `ยืนยันแล้ว`, `doctor`, `confirmedAt`; "ประวัติรับบริการ" แสดง "ส่งคำขอจอง" + "หน่วยบริการยืนยันนัด · <แพทย์>"; การ์ดฝั่งแม่เป็น "นัดหมายแล้ว" พร้อมหน่วยบริการ
 
 ## Gotchas
 

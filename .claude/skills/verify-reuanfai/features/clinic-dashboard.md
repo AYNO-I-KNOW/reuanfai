@@ -32,7 +32,7 @@ Preconditions:
 - **กรองสถานะ.** `page.getByRole('combobox', {name: 'สถานะยา'}).click()` แล้วเลือก `getByRole('option', {name: 'ใกล้หมด'})` (ตัวเลือก: ทั้งหมด, ปกติ, ใกล้หมด, หมด, ใกล้หมดอายุ)
 - **ปิดแจ้งเตือน.** `page.getByRole('button', {name: 'ปิดการแจ้งเตือน'}).click()` แถบ "N รายการใกล้หมด" หาย
 - **ไป นัดหมาย.** nav ปุ่ม "นัดหมาย" h1 "นัดหมาย" ปุ่ม "เพิ่มนัดหมาย" อยู่ในหัว
-- **Cross-view จากการจอง.** ถ้าก่อนหน้านี้ context เดียวกันจองคิว (`booking.md`) แถวคุณแม่ `M01` ปรากฏใน view นัดหมาย (อ่านจาก `reuanfai-care-demo-v1.appointments` ตัวเดียวกัน; ยังไม่ได้ยืนยันด้วยการรัน)
+- **Cross-view จากการจอง.** ถ้าก่อนหน้านี้ context เดียวกันจองคิว (`booking.md`) แถวคุณแม่ปรากฏใน view นัดหมาย (อ่านจาก `reuanfai-care-demo-v1.appointments` ตัวเดียวกัน; รันแล้ว PASS ขั้นตอนยืนยันนัดดู `booking.md` ข้อ Cross-view)
 - **Proof.** ARIA snapshot + screenshot ของ view พร้อม h1 และ storage dump ของ `reuanfai-care-demo-v1`
 
 ## Gotchas
